@@ -5,66 +5,65 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
 class CalculatorViewModel : ViewModel() {
-    val expression = mutableStateOf("")
-    val result = mutableStateOf("")
+    val currentExpression = mutableStateOf("")
+    val evaluationResult = mutableStateOf("")
 
     fun clear() {
-        expression.value = ""
-        result.value = ""
+        currentExpression.value = ""
+        evaluationResult.value = ""
     }
 
-    fun append(char: String) {
-        Log.d("append", "$char Expression Value:${expression.value}")
-        if (char in "0123456789") {
-            expression.value += char
-        } else if (char in "+-×÷") {
-            if (expression.value.isNotEmpty()) {
-                val lastChar = expression.value.last()
+    fun addCharacterToExpression(character: String) {
+        Log.d(
+            "CalculatorViewModel",
+            "Adding character: $character to expression: ${currentExpression.value}"
+        )
 
-                // if last char is an operator, replace it with the new operator
+        if (character in "0123456789") {
+            currentExpression.value += character
+        } else if (character in "+-×÷") {
+            if (currentExpression.value.isNotEmpty()) {
+                val lastChar = currentExpression.value.last()
                 if (lastChar in "+-×÷") {
-                    expression.value = expression.value.dropLast(1)
+                    currentExpression.value = currentExpression.value.dropLast(1)
                 }
             }
-            expression.value += char
-        } else if (char == ".") {
-            if (expression.value.isNotEmpty()) {
-                val lastChar = expression.value.last()
+            currentExpression.value += character
+        } else if (character == ".") {
+            if (currentExpression.value.isNotEmpty()) {
+                val lastChar = currentExpression.value.last()
                 if (lastChar != '.') {
-                    // if last char is an operator, and the current char is a dot, add a zero before the dot
                     if (lastChar in "+-×÷") {
-                        expression.value += "0"
+                        currentExpression.value += "0"
                     }
-                    expression.value += char
+                    currentExpression.value += character
                 }
             }
-
-        } else if (char == "(") {
-            if (expression.value.isNotEmpty()) {
-                val lastChar = expression.value.last()
-                // if last char is not a operator, add a multiplication operator before the parenthesis
+        } else if (character == "(") {
+            if (currentExpression.value.isNotEmpty()) {
+                val lastChar = currentExpression.value.last()
                 if (lastChar !in "+-×÷") {
-                    expression.value += "×"
+                    currentExpression.value += "×"
                 }
             }
-            expression.value += char
-        } else if (char == ")") {
-            expression.value += char
+            currentExpression.value += character
+        } else if (character == ")") {
+            currentExpression.value += character
         }
     }
 
-    fun delete() {
-        if (expression.value.isNotEmpty()) {
-            expression.value = expression.value.dropLast(1)
+    fun removeLastCharacter() {
+        if (currentExpression.value.isNotEmpty()) {
+            currentExpression.value = currentExpression.value.dropLast(1)
         }
     }
 
-    fun evaluate() {
+    fun calculateResult() {
         try {
-            val resultValue = evaluate(expression.value)
-            result.value = resultValue.toString()
+            val resultValue = evaluate(currentExpression.value)
+            evaluationResult.value = resultValue.toString()
         } catch (e: Exception) {
-            result.value = "Error"
+            evaluationResult.value = "Error"
         }
     }
 }

@@ -3,21 +3,9 @@ package com.miiaCourse.calculator
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,11 +31,11 @@ fun PreviewCalculatorUI() {
 fun CalculatorUI(
     viewModel: CalculatorViewModel,
 ) {
-    val expression = viewModel.expression
-    val result = viewModel.result
+    val currentExpression = viewModel.currentExpression
+    val evaluationResult = viewModel.evaluationResult
     val buttonSpacing = 8.dp
 
-    Log.d("MainActivity", "onCreate: ${viewModel.expression.value}")
+    Log.d("CalculatorUI", "Expression: ${viewModel.currentExpression.value}")
 
     Scaffold(
         topBar = {
@@ -71,25 +59,26 @@ fun CalculatorUI(
                     .background(DarkGray)
                     .padding(paddingValues)
             ) {
-                LazyRow(
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxWidth(),
-                    reverseLayout = true
-                ) {
-                    item{
-                        Text(
-                            text = expression.value,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp, horizontal = 8.dp),
-                            fontWeight = FontWeight.Light,
-                            fontSize = 80.sp,
-                            color = Color.White,
-                            maxLines = 1
-                        )
-                    }
-                }
+                // Input Field for Expression
+                TextField(
+                    value = currentExpression.value,
+                    onValueChange = { viewModel.currentExpression.value = it },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 40.sp,
+                        textAlign = TextAlign.End
+                    ),
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        cursorColor = Color.Yellow,
+                    )
+                )
+
+                // Display Evaluation Result
                 LazyRow(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth(),
@@ -97,7 +86,7 @@ fun CalculatorUI(
                 ) {
                     item {
                         Text(
-                            text = result.value,
+                            text = evaluationResult.value,
                             textAlign = TextAlign.End,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -110,6 +99,7 @@ fun CalculatorUI(
                     }
                 }
 
+                // Divider
                 Divider(
                     color = MediumGray,
                     modifier = Modifier
@@ -117,13 +107,14 @@ fun CalculatorUI(
                         .padding(bottom = 16.dp)
                 )
 
+                // Buttons Section
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(buttonSpacing)
                 ) {
-                    // Buttons Section - Remains Unchanged
+                    // First Row of Buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
@@ -142,7 +133,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.append("(") }
+                                .clickable { viewModel.addCharacterToExpression("(") }
                         )
                         CalculatorButton(
                             symbol = ")",
@@ -150,7 +141,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.append(")") }
+                                .clickable { viewModel.addCharacterToExpression(")") }
                         )
                         CalculatorButton(
                             symbol = "÷",
@@ -158,7 +149,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.append("÷") }
+                                .clickable { viewModel.addCharacterToExpression("÷") }
                         )
                     }
                     // Additional Rows of Buttons...
@@ -172,7 +163,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.append("7") }
+                                .clickable { viewModel.addCharacterToExpression("7") }
                         )
                         CalculatorButton(
                             symbol = "8",
@@ -180,7 +171,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.append("8") }
+                                .clickable { viewModel.addCharacterToExpression("8") }
                         )
                         CalculatorButton(
                             symbol = "9",
@@ -188,7 +179,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.append("9") }
+                                .clickable { viewModel.addCharacterToExpression("9") }
                         )
                         CalculatorButton(
                             symbol = "×",
@@ -196,7 +187,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.append("×") }
+                                .clickable { viewModel.addCharacterToExpression("×") }
                         )
                     }
                     Row(
@@ -211,7 +202,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("4")
+                                    viewModel.addCharacterToExpression("4")
                                 }
                         )
                         CalculatorButton(
@@ -221,7 +212,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("5")
+                                    viewModel.addCharacterToExpression("5")
                                 }
                         )
                         CalculatorButton(
@@ -231,7 +222,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("6")
+                                    viewModel.addCharacterToExpression("6")
                                 }
                         )
                         CalculatorButton(
@@ -241,7 +232,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("-")
+                                    viewModel.addCharacterToExpression("-")
                                 }
                         )
                     }
@@ -257,7 +248,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("1")
+                                    viewModel.addCharacterToExpression("1")
                                 }
                         )
                         CalculatorButton(
@@ -268,7 +259,7 @@ fun CalculatorUI(
                                 .weight(1f)
 
                                 .clickable {
-                                    viewModel.append("2")
+                                    viewModel.addCharacterToExpression("2")
                                 }
                         )
                         CalculatorButton(
@@ -278,7 +269,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("3")
+                                    viewModel.addCharacterToExpression("3")
                                 }
                         )
                         CalculatorButton(
@@ -288,7 +279,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("+")
+                                    viewModel.addCharacterToExpression("+")
                                 }
                         )
                     }
@@ -304,7 +295,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append("0")
+                                    viewModel.addCharacterToExpression("0")
                                 }
                         )
                         CalculatorButton(
@@ -314,7 +305,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.append(".")
+                                    viewModel.addCharacterToExpression(".")
                                 }
                         )
                         CalculatorButton(
@@ -324,7 +315,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.delete()
+                                    viewModel.removeLastCharacter()
                                 }
                         )
                         CalculatorButton(
@@ -334,7 +325,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {
-                                    viewModel.evaluate()
+                                    viewModel.calculateResult()
                                 }
                         )
                     }

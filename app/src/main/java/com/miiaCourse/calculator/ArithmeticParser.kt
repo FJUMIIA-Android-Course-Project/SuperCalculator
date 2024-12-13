@@ -1,153 +1,116 @@
 package com.miiaCourse.calculator
 
-//Class for Tokenizer
-class Tokenizer(val input: String) {
-    // for storing the position of the current character
-    var pos = 0
+// Class for breaking down mathematical expressions into tokens
+class ExpressionTokenizer(val input: String) {
+    var position = 0 // Tracks the current character position
+    var currentToken: String? = null // Holds the current token
 
-    // for storing the current token
-    var token: String? = null
-
-    //Advancing to the next token in the input(tokens are like integers,operators,parenthesis etc)
-    fun nextToken() {
-
-        while (pos < input.length && input[pos].isWhitespace()) {
-            pos++
+    // Advances to the next token in the input
+    fun advanceToNextToken() {
+        while (position < input.length && input[position].isWhitespace()) {
+            position++
         }
 
-        if (pos == input.length) {
-            token = null
+        if (position == input.length) {
+            currentToken = null
             return
         }
 
-        // if the current character is a digit or a decimal point, then we parse a number
-        if (input[pos].isDigit() || input[pos] == '.') {
-
-            val sb = StringBuilder()
-            while (pos < input.length && (input[pos].isDigit() || input[pos] == '.')) {
-                sb.append(input[pos])
-                pos++
+        // Parse numbers (integers or decimals)
+        if (input[position].isDigit() || input[position] == '.') {
+            val numberBuilder = StringBuilder()
+            while (position < input.length && (input[position].isDigit() || input[position] == '.')) {
+                numberBuilder.append(input[position])
+                position++
             }
-            token = sb.toString()
+            currentToken = numberBuilder.toString()
             return
         }
 
-        if ("+-×÷()".contains(input[pos])) {
-
-            token = input[pos].toString()
-            pos++
+        // Parse operators and parentheses
+        if ("+-×÷()".contains(input[position])) {
+            currentToken = input[position].toString()
+            position++
             return
         }
 
-        throw IllegalArgumentException("Invalid character: ${input[pos]}")
+        throw IllegalArgumentException("Invalid character encountered: ${input[position]}")
     }
 }
 
-
+// Evaluates a mathematical expression and returns the result
 fun evaluate(expression: String): Double {
-
-    val tokenizer = Tokenizer(expression)
-
-    tokenizer.nextToken()
-
-    return parseExpression(tokenizer)
+    val tokenizer = ExpressionTokenizer(expression)
+    tokenizer.advanceToNextToken()
+    return parseAddSubtractOperation(tokenizer)
 }
 
-// function to parse the expression and carry out addition and subtraction operations
-fun parseExpression(tokenizer: Tokenizer): Double {
+// Handles addition and subtraction operations in the expression
+fun parseAddSubtractOperation(tokenizer: ExpressionTokenizer): Double {
+    var result = parseMultiplyDivideOperation(tokenizer)
 
-    var result = parseTerm(tokenizer)
+    while (tokenizer.currentToken in listOf("+", "-")) {
+        val operator = tokenizer.currentToken!!
+        tokenizer.advanceToNextToken()
+        val nextTerm = parseMultiplyDivideOperation(tokenizer)
 
-    while (tokenizer.token in listOf("+", "-")) {
-
-        val op = tokenizer.token!!
-
-        tokenizer.nextToken()
-
-        val term = parseTerm(tokenizer)
-
-        result = when (op) {
-            "+" -> result + term
-            "-" -> result - term
-            else -> throw IllegalStateException("Invalid operator: $op")
-        }
-    }
-
-    return result
-}
-
-// function to parse the term and carry out multiplication and division operations
-fun parseTerm(tokenizer: Tokenizer): Double {
-
-    var result = parseFactor(tokenizer)
-    while (tokenizer.token in listOf("×", "÷")) {
-
-        val op = tokenizer.token!!
-        tokenizer.nextToken()
-        val factor = parseFactor(tokenizer)
-
-        result = when (op) {
-            "×" -> result * factor
-            "÷" -> result / factor
-            else -> throw IllegalStateException("Invalid operator: $op")
+        result = when (operator) {
+            "+" -> result + nextTerm
+            "-" -> result - nextTerm
+            else -> throw IllegalStateException("Unexpected operator: $operator")
         }
     }
     return result
-
 }
 
-// To get the value of the factor and carry out unary operations and also to handle parenthesis
-fun parseFactor(tokenizer: Tokenizer): Double {
+// Handles multiplication and division operations in the expression
+fun parseMultiplyDivideOperation(tokenizer: ExpressionTokenizer): Double {
+    var result = parseSingleExpression(tokenizer)
 
-    if (tokenizer.token == null) {
-        throw IllegalArgumentException("Missing factor")
+    while (tokenizer.currentToken in listOf("×", "÷")) {
+        val operator = tokenizer.currentToken!!
+        tokenizer.advanceToNextToken()
+        val nextFactor = parseSingleExpression(tokenizer)
+
+        result = when (operator) {
+            "×" -> result * nextFactor
+            "÷" -> result / nextFactor
+            else -> throw IllegalStateException("Unexpected operator: $operator")
+        }
     }
-    //Checking if the token is a number
-    if (tokenizer.token!!.toDoubleOrNull() != null) {
+    return result
+}
 
-        val value = tokenizer.token!!.toDouble()
+// Handles numbers, parentheses, and unary operations
+fun parseSingleExpression(tokenizer: ExpressionTokenizer): Double {
+    if (tokenizer.currentToken == null) {
+        throw IllegalArgumentException("Expected a number or expression but found null.")
+    }
 
-        tokenizer.nextToken()
-
+    if (tokenizer.currentToken!!.toDoubleOrNull() != null) {
+        val value = tokenizer.currentToken!!.toDouble()
+        tokenizer.advanceToNextToken()
         return value
     }
 
-    //Checking if the token is a unary operator
-    if (tokenizer.token in listOf("+", "-")) {
-
-        val op = tokenizer.token!!
-
-        tokenizer.nextToken()
-
-        val factor = parseFactor(tokenizer)
-
-        return when (op) {
-            "+" -> +factor
-            "-" -> -factor
-            else -> throw IllegalStateException("Invalid operator: $op")
-        }
+    if (tokenizer.currentToken in listOf("+", "-")) {
+        val operator = tokenizer.currentToken!!
+        tokenizer.advanceToNextToken()
+        val nextFactor = parseSingleExpression(tokenizer)
+        return if (operator == "+") nextFactor else -nextFactor
     }
 
-    //Handling parenthesis
-    if (tokenizer.token == "(" && tokenizer.input.indexOf(")", tokenizer.pos) != -1) { // Added this condition
+    if (tokenizer.currentToken == "(" && tokenizer.input.indexOf(")", tokenizer.position) != -1) {
+        tokenizer.advanceToNextToken()
+        val innerValue = parseAddSubtractOperation(tokenizer)
 
-        tokenizer.nextToken()
-
-        // Parsing the expression inside the parenthesis like (2-6+4) etc
-        val value = parseExpression(tokenizer)
-
-        if (tokenizer.token == ")") {
-
-            tokenizer.nextToken()
-
-            return value
+        if (tokenizer.currentToken == ")") {
+            tokenizer.advanceToNextToken()
+            return innerValue
         } else {
-            throw IllegalArgumentException("Missing closing parenthesis")
+            throw IllegalArgumentException("Expected closing parenthesis.")
         }
     }
-    else {
-        throw IllegalArgumentException("Invalid factor: ${tokenizer.token}")
-    }
+
+    throw IllegalArgumentException("Unexpected token encountered: ${tokenizer.currentToken}")
 }
-
-
