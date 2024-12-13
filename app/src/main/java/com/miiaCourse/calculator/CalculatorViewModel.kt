@@ -4,18 +4,20 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
-
-class CalculatorViewModel: ViewModel() {
+class CalculatorViewModel : ViewModel() {
     val expression = mutableStateOf("")
+    val result = mutableStateOf("")
+
     fun clear() {
         expression.value = ""
+        result.value = ""
     }
 
     fun append(char: String) {
         Log.d("append", "$char Expression Value:${expression.value}")
         if (char in "0123456789") {
             expression.value += char
-        }else if(char in "+-×÷") {
+        } else if (char in "+-×÷") {
             if (expression.value.isNotEmpty()) {
                 val lastChar = expression.value.last()
 
@@ -25,10 +27,10 @@ class CalculatorViewModel: ViewModel() {
                 }
             }
             expression.value += char
-        }else if(char == ".") {
+        } else if (char == ".") {
             if (expression.value.isNotEmpty()) {
                 val lastChar = expression.value.last()
-                if (lastChar!='.') {
+                if (lastChar != '.') {
                     // if last char is an operator, and the current char is a dot, add a zero before the dot
                     if (lastChar in "+-×÷") {
                         expression.value += "0"
@@ -37,7 +39,7 @@ class CalculatorViewModel: ViewModel() {
                 }
             }
 
-        }else if(char =="("){
+        } else if (char == "(") {
             if (expression.value.isNotEmpty()) {
                 val lastChar = expression.value.last()
                 // if last char is not a operator, add a multiplication operator before the parenthesis
@@ -46,7 +48,7 @@ class CalculatorViewModel: ViewModel() {
                 }
             }
             expression.value += char
-        }else if(char ==")"){
+        } else if (char == ")") {
             expression.value += char
         }
     }
@@ -58,11 +60,11 @@ class CalculatorViewModel: ViewModel() {
     }
 
     fun evaluate() {
-        expression.value = try {
-            val result = evaluate(expression.value)
-            result.toString()
+        try {
+            val resultValue = evaluate(expression.value)
+            result.value = resultValue.toString()
         } catch (e: Exception) {
-            "Error"
+            result.value = "Error"
         }
     }
 }
