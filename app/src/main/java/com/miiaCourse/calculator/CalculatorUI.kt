@@ -5,11 +5,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,11 +38,12 @@ fun PreviewCalculatorUI() {
 fun CalculatorUI(
     viewModel: CalculatorViewModel,
 ) {
+    val focusRequester = remember { FocusRequester() }
     val currentExpression = viewModel.currentExpression
     val evaluationResult = viewModel.evaluationResult
     val buttonSpacing = 8.dp
 
-    Log.d("CalculatorUI", "Expression: ${viewModel.currentExpression.value}")
+    Log.d("CalculatorUI", "Expression: ${viewModel.currentExpression}")
 
     Scaffold(
         topBar = {
@@ -61,23 +69,36 @@ fun CalculatorUI(
             ) {
                 // Input Field for Expression
                 TextField(
-                    value = currentExpression.value,
-                    onValueChange = { viewModel.currentExpression.value = it },
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    value = currentExpression,
+                    onValueChange = {
+                        viewModel.currentExpression = it
+                        viewModel.cursorPosition = it.selection.start
+                        },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                    .clickable {
+                    focusRequester.requestFocus() //  请求焦点
+                    }
+                    .focusRequester(focusRequester),
+
                     textStyle = LocalTextStyle.current.copy(
                         fontSize = 40.sp,
-                        textAlign = TextAlign.End
+                        textAlign = TextAlign.End,
+                        color = Color.White
                     ),
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         disabledContainerColor = Color.Transparent,
-                        cursorColor = Color.Yellow,
-                    )
+                        cursorColor = Color.White,
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.None)
                 )
-
+                LaunchedEffect(key1 = Unit) {
+                    delay(100) //  延遲 100 毫秒
+                    focusRequester.requestFocus() //  再次請求焦點，使游標出現
+                }
                 // Display Evaluation Result
                 LazyRow(
                     horizontalArrangement = Arrangement.End,
