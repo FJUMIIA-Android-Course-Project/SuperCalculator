@@ -64,19 +64,37 @@ class CalculatorViewModel : ViewModel() {
     fun removeLastCharacter() {
         val currentText = currentExpression.text
         val cursorPosition = currentExpression.selection.start
-        Log.d(TAG, "Removing character at position: $cursorPosition in expression: $currentText")
 
-        if (currentText.isNotEmpty() && cursorPosition > 0) {
-            val newText = currentText.removeRange(cursorPosition - 1, cursorPosition)
-            currentExpression = TextFieldValue(
-                newText,
-                selection = androidx.compose.ui.text.TextRange(cursorPosition - 1)
-            )
-            Log.d(TAG, "Updated expression after removal: $newText")
+        if (currentText.isEmpty() || cursorPosition == 0) return
+
+        val newText = StringBuilder(currentText)
+        var i = cursorPosition - 1
+
+        // If a function name is encountered, delete the entire function
+        if (i >= 2) {
+            val possibleFunction = currentText.substring(maxOf(0, i - 2), i + 1) // Check the previous 3 characters
+            if (possibleFunction in listOf("sin", "cos", "tan", "log", "ln", "√")) {
+                newText.delete(i - 2, i + 1) // Delete the function name
+                i -= 3
+            } else {
+                newText.deleteCharAt(i) // Normal deletion
+                i--
+            }
+        } else {
+            newText.deleteCharAt(i)
+            i--
         }
-        // Trigger automatic calculation of the result
+
+        // Update the expression content and cursor position
+        currentExpression = TextFieldValue(
+            newText.toString(),
+            selection = androidx.compose.ui.text.TextRange(maxOf(i + 1, 0))
+        )
+
+        Log.d("CalculatorViewModel", "Updated expression after removal: ${currentExpression.text}")
         autoCalculateResult()
     }
+
 
     /**
      * Calculates the result of the current expression.
@@ -133,85 +151,95 @@ class CalculatorViewModel : ViewModel() {
     private fun infixToPostfix(expression: String): List<String> {
         Log.d(TAG, "Converting to postfix: $expression")
         val output = mutableListOf<String>()
-        val operators = ArrayDeque<Char>()
+        val operators = ArrayDeque<String>()
         // Define operator precedence
         val precedence = mapOf('+' to 1, '-' to 1, '×' to 2, '÷' to 2, '^' to 3, "log" to 4, "ln" to 4, "sin" to 4, "cos" to 4, "tan" to 4, "√" to 4)
 
-        var lastWasNumberOrRightParenthesis = false
         var number = ""
+        var i = 0
+        var lastWasNumberOrRightParenthesis = false
 
-        for (i in expression.indices) {
+        while (i < expression.length) {
             val char = expression[i]
-            Log.d(TAG, "Processing char: $char at index: $i")
 
             when {
+                // Handle numbers and decimal points
                 char.isDigit() || char == '.' -> {
-                    // Handle numbers
                     number += char
                     lastWasNumberOrRightParenthesis = true
+
                 }
-                char.toString() == "e" -> {
-                    // Handle Euler's number 'e'
-                    number += Math.E
-                    lastWasNumberOrRightParenthesis = true
-                }
-                char.toString() == "π" -> {
-                    // Handle pi 'π'
-                    number += Math.PI
-                    lastWasNumberOrRightParenthesis = true
-                }
-                char == '-' && (i == 0 || expression[i - 1] == '(') -> {
-                    // Handle negative numbers (e.g., -5 or -(3+2))
-                    // Determine if it's the start of a negative number
-                }
-                char == '(' -> {
-                    // Handle opening parenthesis
-                    if (lastWasNumberOrRightParenthesis) {
-                        // Insert implicit multiplication if needed (e.g., 2(3) becomes 2×(3))
-                        while (operators.isNotEmpty() && operators.last() == '*') {
-                            output.add(operators.removeLast().toString())
+
+                // Handle function names, such as sin, cos, tan
+                expression.startsWith("sin", i) || expression.startsWith("cos", i) ||
+                        expression.startsWith("tan", i) || expression.startsWith("log", i) ||
+                        expression.startsWith("ln", i) || expression.startsWith("√", i) -> {
+                    if (number.isNotEmpty()) {
+                        output.add(number)
+                        number = ""
+
+                        if (lastWasNumberOrRightParenthesis) {
+                            operators.addLast("×")
                         }
-                        operators.addLast('×')
                     }
+                    val functionName = when {
+                        expression.startsWith("sin", i) -> "sin"
+                        expression.startsWith("cos", i) -> "cos"
+                        expression.startsWith("tan", i) -> "tan"
+                        expression.startsWith("log", i) -> "log"
+                        expression.startsWith("ln", i) -> "ln"
+                        expression.startsWith("√", i) -> "√"
+                        else -> ""
+                    }
+                    operators.addLast(functionName) // Push the function onto the stack
+                    i += functionName.length - 1 // Skip the length of the function name
+                }
+
+                // Handle left parenthesis
+                char == '(' -> {
                     if (number.isNotEmpty()) {
                         output.add(number)
                         number = ""
                     }
-                    operators.addLast(char)
-                    lastWasNumberOrRightParenthesis = false
+                    operators.addLast(char.toString())
                 }
+
+                // Handle right parenthesis
                 char == ')' -> {
-                    // Handle closing parenthesis
                     if (number.isNotEmpty()) {
                         output.add(number)
                         number = ""
                     }
-                    while (operators.isNotEmpty() && operators.last() != '(') {
-                        output.add(operators.removeLast().toString())
+                    while (operators.isNotEmpty() && operators.last() != "(") {
+                        output.add(operators.removeLast())
                     }
-                    if (operators.isNotEmpty()) operators.removeLast() // Remove the opening parenthesis
-                    lastWasNumberOrRightParenthesis = true
+                    operators.removeLast() // Remove the left parenthesis
+                    if (operators.isNotEmpty() && operators.last() in precedence.keys) {
+                        output.add(operators.removeLast()) // If there is a function name, put it in the output
+                    }
                 }
+
+                // Handle operators
                 else -> {
-                    // Handle operators
                     if (number.isNotEmpty()) {
                         output.add(number)
                         number = ""
                     }
-                    while (operators.isNotEmpty() && precedence.getOrDefault(operators.last(), 0) >= precedence.getOrDefault(char, 0)) {
-                        output.add(operators.removeLast().toString())
+                    while (operators.isNotEmpty() &&
+                        precedence.getOrDefault(operators.last(), 0) >= precedence.getOrDefault(char.toString(), 0)
+                    ) {
+                        output.add(operators.removeLast())
                     }
-                    operators.addLast(char)
-                    lastWasNumberOrRightParenthesis = false
+                    operators.addLast(char.toString())
                 }
             }
+            i++
         }
 
         if (number.isNotEmpty()) output.add(number)
-        while (operators.isNotEmpty()) {
-            output.add(operators.removeLast().toString())
-        }
-        Log.d(TAG, "Postfix result: $output")
+        while (operators.isNotEmpty()) output.add(operators.removeLast())
+
+        Log.d("CalculatorViewModel", "Postfix result: $output")
         return output
     }
 
