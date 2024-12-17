@@ -33,19 +33,26 @@ fun PreviewCalculatorUI() {
     CalculatorUI(viewModel = mockViewModel)
 }
 
+// Composable function for the Calculator UI
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorUI(
     viewModel: CalculatorViewModel,
 ) {
+    // FocusRequester for managing focus on the input field
     val focusRequester = remember { FocusRequester() }
+    // State variables for current expression and evaluation result
     val currentExpression = viewModel.currentExpression
     val evaluationResult = viewModel.evaluationResult
+    // Spacing between buttons
     val buttonSpacing = 8.dp
 
+    // Log the current expression for debugging
     Log.d("CalculatorUI", "Expression: ${viewModel.currentExpression}")
 
+    // Scaffold provides the basic structure for the UI
     Scaffold(
+        // Top app bar with the title "Calculator"
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -60,50 +67,53 @@ fun CalculatorUI(
                 )
             )
         },
+        // Content of the Scaffold
         content = { paddingValues ->
+            // Column to arrange UI elements vertically
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(DarkGray)
                     .padding(paddingValues)
             ) {
-                // Input Field for Expression
+                // Input field for the expression
                 TextField(
                     value = currentExpression,
+                    // Update the expression in the ViewModel when the input changes
                     onValueChange = {
                         viewModel.currentExpression = it
-                        viewModel.cursorPosition = it.selection.start
-                        },
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth()
-                    .clickable {
-                    focusRequester.requestFocus() //  请求焦点
-                    }
-                    .focusRequester(focusRequester),
-
+                    },
+                    readOnly = true, // Input field is read-only
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        // Request focus when clicked
+                        .clickable {
+                            focusRequester.requestFocus()
+                        }
+                        .focusRequester(focusRequester), // Assign the FocusRequester
                     textStyle = LocalTextStyle.current.copy(
                         fontSize = 40.sp,
                         textAlign = TextAlign.End,
                         color = Color.White
                     ),
-                    singleLine = true,
+                    singleLine = true, // Input field is single-line
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
                         cursorColor = Color.White,
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.None)
                 )
+                // Launch an effect to request focus on the input field after a delay
                 LaunchedEffect(key1 = Unit) {
-                    delay(100) //  延遲 100 毫秒
-                    focusRequester.requestFocus() //  再次請求焦點，使游標出現
+                    delay(100)
+                    focusRequester.requestFocus()
                 }
-                // Display Evaluation Result
+                // Display the evaluation result
                 LazyRow(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth(),
-                    reverseLayout = true
+                    reverseLayout = true // Display result from right to left
                 ) {
                     item {
                         Text(
@@ -115,12 +125,12 @@ fun CalculatorUI(
                             fontWeight = FontWeight.Light,
                             fontSize = 80.sp,
                             color = Color.White,
-                            maxLines = 1
+                            maxLines = 1 // Limit the result to a single line
                         )
                     }
                 }
 
-                // Divider
+                // Divider to separate the input and button sections
                 Divider(
                     color = MediumGray,
                     modifier = Modifier
@@ -128,18 +138,19 @@ fun CalculatorUI(
                         .padding(bottom = 16.dp)
                 )
 
-                // Buttons Section
+                // Section for calculator buttons
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(buttonSpacing)
                 ) {
-                    // First Row of Buttons
+                    // First row of buttons (AC, (, ), ÷)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
                     ) {
+                        // Button for clearing the expression (AC)
                         CalculatorButton(
                             symbol = "AC",
                             color = DarkRed,
@@ -148,6 +159,7 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable { viewModel.clear() }
                         )
+                        // Button for opening parenthesis (()
                         CalculatorButton(
                             symbol = "(",
                             color = PrussianBlue,
@@ -156,6 +168,7 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable { viewModel.addCharacterToExpression("(") }
                         )
+                        // Button for closing parenthesis ())
                         CalculatorButton(
                             symbol = ")",
                             color = PrussianBlue,
@@ -164,6 +177,7 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable { viewModel.addCharacterToExpression(")") }
                         )
+                        // Button for division (÷)
                         CalculatorButton(
                             symbol = "÷",
                             color = PrussianBlue,
