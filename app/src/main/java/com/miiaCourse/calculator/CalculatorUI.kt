@@ -123,7 +123,7 @@ fun CalculatorUI(
                                 .fillMaxWidth()
                                 .padding(vertical = 20.dp, horizontal = 8.dp),
                             fontWeight = FontWeight.Light,
-                            fontSize = 80.sp,
+                            fontSize = 48.sp,
                             color = Color.White,
                             maxLines = 1 // Limit the result to a single line
                         )
@@ -150,23 +150,23 @@ fun CalculatorUI(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
                     ) {
-                        // Button for fuction log "log"
+                        // Button for function log "log"
                         CalculatorButton(
                             symbol = "log",
                             color = DarkRed,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("log") }
+                                .clickable { viewModel.addCharacterToExpression("log(") }
                         )
-                        // Button for fuction ln "ln"
+                        // Button for function ln "ln"
                         CalculatorButton(
                             symbol = "ln",
                             color = PrussianBlue,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("ln") }
+                                .clickable { viewModel.addCharacterToExpression("ln(") }
                         )
                         // Button for function power "^"
                         CalculatorButton(
@@ -208,7 +208,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("sin") }
+                                .clickable { viewModel.addCharacterToExpression("sin(") }
                         )
                         // Button for function cos "cos"
                         CalculatorButton(
@@ -217,7 +217,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("cos") }
+                                .clickable { viewModel.addCharacterToExpression("cos(") }
                         )
                         // Button for function tan "tan"
                         CalculatorButton(
@@ -226,7 +226,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("tan") }
+                                .clickable { viewModel.addCharacterToExpression("tan(") }
                         )
                         // Button for operator "("
                         CalculatorButton(
@@ -279,15 +279,6 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable { viewModel.addCharacterToExpression("9") }
                         )
-                        // Button for delete "Del"
-                        CalculatorButton(
-                            symbol = "Del",
-                            color = DarkRed,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable { viewModel.removeLastCharacter() }
-                        )
                         // Button for clear "AC"
                         CalculatorButton(
                             symbol = "AC",
@@ -296,6 +287,15 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable { viewModel.clear() }
+                        )
+                        // Button for delete "Del"
+                        CalculatorButton(
+                            symbol = "Del",
+                            color = DarkRed,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.removeLastCharacter() }
                         )
                     }
                     // Fourth row of buttons (4, 5, 6, ×, ÷)
@@ -434,7 +434,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("√") }
+                                .clickable { viewModel.addCharacterToExpression("√(") }
                         )
                         // Button for answer "Ans"
                         CalculatorButton(
