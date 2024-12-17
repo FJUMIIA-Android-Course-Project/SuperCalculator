@@ -142,24 +142,93 @@ fun CalculatorUI(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 18.dp),
                     verticalArrangement = Arrangement.spacedBy(buttonSpacing)
                 ) {
-                    // First row of buttons (AC, (, ), ÷)
+                    // First row of buttons (log, ln, ^, e, π)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
                     ) {
-                        // Button for clearing the expression (AC)
+                        // Button for fuction log "log"
                         CalculatorButton(
-                            symbol = "AC",
+                            symbol = "log",
                             color = DarkRed,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.clear() }
+                                .clickable { viewModel.addCharacterToExpression("log") }
                         )
-                        // Button for opening parenthesis (()
+                        // Button for fuction ln "ln"
+                        CalculatorButton(
+                            symbol = "ln",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("ln") }
+                        )
+                        // Button for function power "^"
+                        CalculatorButton(
+                            symbol = "^",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("^") }
+                        )
+                        // Button for constant e "e"
+                        CalculatorButton(
+                            symbol = "e",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("e") }
+                        )
+                        // Button for constant π "π"
+                        CalculatorButton(
+                            symbol = "π",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("π") }
+                        )
+                    }
+                    // Second row of buttons (sin, cos, tan, (, ))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
+                    ) {
+                        // Button for function sin "sin"
+                        CalculatorButton(
+                            symbol = "sin",
+                            color = DarkRed,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("sin") }
+                        )
+                        // Button for function cos "cos"
+                        CalculatorButton(
+                            symbol = "cos",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("cos") }
+                        )
+                        // Button for function tan "tan"
+                        CalculatorButton(
+                            symbol = "tan",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("tan") }
+                        )
+                        // Button for operator "("
                         CalculatorButton(
                             symbol = "(",
                             color = PrussianBlue,
@@ -168,7 +237,7 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable { viewModel.addCharacterToExpression("(") }
                         )
-                        // Button for closing parenthesis ())
+                        // Button for operator ")"
                         CalculatorButton(
                             symbol = ")",
                             color = PrussianBlue,
@@ -177,7 +246,101 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable { viewModel.addCharacterToExpression(")") }
                         )
-                        // Button for division (÷)
+                    }
+                    // Third row of buttons (7, 8, 9, Del, AC)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
+                    ) {
+                        // Button for number 7 "7"
+                        CalculatorButton(
+                            symbol = "7",
+                            color = MediumGray,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("7") }
+                        )
+                        // Button for number 8 "8"
+                        CalculatorButton(
+                            symbol = "8",
+                            color = MediumGray,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("8") }
+                        )
+                        // Button for number 9 "9"
+                        CalculatorButton(
+                            symbol = "9",
+                            color = MediumGray,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("9") }
+                        )
+                        // Button for delete "Del"
+                        CalculatorButton(
+                            symbol = "Del",
+                            color = DarkRed,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.removeLastCharacter() }
+                        )
+                        // Button for clear "AC"
+                        CalculatorButton(
+                            symbol = "AC",
+                            color = DarkRed,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.clear() }
+                        )
+                    }
+                    // Fourth row of buttons (4, 5, 6, ×, ÷)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
+                    ) {
+                        // Buttons for number 4 "4"
+                        CalculatorButton(
+                            symbol = "4",
+                            color = MediumGray,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("4") }
+                        )
+                        // Buttons for number 5 "5"
+                        CalculatorButton(
+                            symbol = "5",
+                            color = MediumGray,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("5") }
+                        )
+                        // Buttons for number 6 "6"
+                        CalculatorButton(
+                            symbol = "6",
+                            color = MediumGray,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("6") }
+                        )
+                        // Button for operator × "×"
+                        CalculatorButton(
+                            symbol = "×",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("×") }
+                        )
+                        // Button for operator ÷ "÷"
                         CalculatorButton(
                             symbol = "÷",
                             color = PrussianBlue,
@@ -187,105 +350,22 @@ fun CalculatorUI(
                                 .clickable { viewModel.addCharacterToExpression("÷") }
                         )
                     }
-                    // Additional Rows of Buttons...
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
-                    ) {
-                        CalculatorButton(
-                            symbol = "7",
-                            color = MediumGray,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("7") }
-                        )
-                        CalculatorButton(
-                            symbol = "8",
-                            color = MediumGray,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("8") }
-                        )
-                        CalculatorButton(
-                            symbol = "9",
-                            color = MediumGray,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("9") }
-                        )
-                        CalculatorButton(
-                            symbol = "×",
-                            color = PrussianBlue,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("×") }
-                        )
-                    }
+                    // Fifth row of buttons (1, 2, 3, +, -)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
                     ) {
-                        CalculatorButton(
-                            symbol = "4",
-                            color = MediumGray,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("4")
-                                }
-                        )
-                        CalculatorButton(
-                            symbol = "5",
-                            color = MediumGray,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("5")
-                                }
-                        )
-                        CalculatorButton(
-                            symbol = "6",
-                            color = MediumGray,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("6")
-                                }
-                        )
-                        CalculatorButton(
-                            symbol = "-",
-                            color = PrussianBlue,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("-")
-                                }
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
-                    ) {
+                        // Buttons for number 1 "1"
                         CalculatorButton(
                             symbol = "1",
                             color = MediumGray,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("1")
-                                }
+                                .clickable { viewModel.addCharacterToExpression("1") }
                         )
+                        // Buttons for number 2 "2"
                         CalculatorButton(
                             symbol = "2",
                             color = MediumGray,
@@ -293,79 +373,89 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
 
-                                .clickable {
-                                    viewModel.addCharacterToExpression("2")
-                                }
+                                .clickable { viewModel.addCharacterToExpression("2") }
                         )
+                        // Buttons for number 3 "3"
                         CalculatorButton(
                             symbol = "3",
                             color = MediumGray,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("3")
-                                }
+                                .clickable { viewModel.addCharacterToExpression("3") }
                         )
+                        // Button for operator + "+"
                         CalculatorButton(
                             symbol = "+",
                             color = PrussianBlue,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("+")
-                                }
+                                .clickable { viewModel.addCharacterToExpression("+") }
+                        )
+                        // Button for operator - "-"
+                        CalculatorButton(
+                            symbol = "-",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("-") }
                         )
                     }
+                    // Sixth row of buttons (0, ., √, Ans, =)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
                     ) {
+                        // Button for number 0 "0"
                         CalculatorButton(
                             symbol = "0",
                             color = MediumGray,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression("0")
-                                }
+                                .clickable { viewModel.addCharacterToExpression("0") }
                         )
+                        // Button for decimal point "."
                         CalculatorButton(
                             symbol = ".",
                             color = MediumGray,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable {
-                                    viewModel.addCharacterToExpression(".")
-                                }
+                                .clickable { viewModel.addCharacterToExpression(".") }
                         )
+                        // Button for square root "√"
                         CalculatorButton(
-                            symbol = "Del",
+                            symbol = "√",
                             color = DarkRed,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable {
-                                    viewModel.removeLastCharacter()
-                                }
+                                .clickable { viewModel.addCharacterToExpression("√") }
                         )
+                        // Button for answer "Ans"
+                        CalculatorButton(
+                            symbol = "Ans",
+                            color = Color(0xFF003175),
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.calculateResult() }
+                        )
+                        // Button for equals "="
                         CalculatorButton(
                             symbol = "=",
                             color = Color(0xFF003175),
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable {
-                                    viewModel.calculateResult()
-                                }
+                                .clickable { viewModel.calculateResult() }
                         )
                     }
                 }
-
             }
         }
     )

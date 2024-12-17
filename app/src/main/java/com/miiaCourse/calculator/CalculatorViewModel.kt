@@ -62,7 +62,7 @@ class CalculatorViewModel : ViewModel() {
             val result = evaluatePostfix(postfixExpression)
             evaluationResult.value = result.toString()
         } catch (e: Exception) {
-            evaluationResult.value = "Syntax Error"
+            evaluationResult.value = ""
         }
     }
 
@@ -70,7 +70,7 @@ class CalculatorViewModel : ViewModel() {
     private fun infixToPostfix(expression: String): List<String> {
         val output = mutableListOf<String>()
         val operators = ArrayDeque<Char>()
-        val precedence = mapOf('+' to 1, '-' to 1, '×' to 2, '÷' to 2)
+        val precedence = mapOf('+' to 1, '-' to 1, '×' to 2, '÷' to 2,'^' to 3, "log" to 4, "ln" to 4, "sin" to 4, "cos" to 4, "tan" to 4, "√" to 4)
 
         var lastWasNumberOrRightParenthesis = false
 
@@ -81,6 +81,14 @@ class CalculatorViewModel : ViewModel() {
             when {
                 char.isDigit() || char == '.' -> { // Handle numbers
                     number += char
+                    lastWasNumberOrRightParenthesis = true
+                }
+                char.toString() == "e" -> {
+                    number += Math.E
+                    lastWasNumberOrRightParenthesis = true
+                }
+                char.toString() == "π" -> {
+                    number += Math.PI
                     lastWasNumberOrRightParenthesis = true
                 }
                 char == '-' && (i == 0 || expression[i - 1] == '(') -> {
@@ -147,6 +155,17 @@ class CalculatorViewModel : ViewModel() {
                     val a = stack.removeLast()
                     stack.addLast(a / b)
                 }
+                "^" -> {
+                    val b = stack.removeLast()
+                    val a = stack.removeLast()
+                    stack.addLast(Math.pow(a, b))
+                }
+                "sin" -> stack.addLast(Math.sin(Math.toRadians(stack.removeLast())))
+                "cos" -> stack.addLast(Math.cos(Math.toRadians(stack.removeLast())))
+                "tan" -> stack.addLast(Math.tan(Math.toRadians(stack.removeLast())))
+                "log" -> stack.addLast(Math.log10(stack.removeLast()))
+                "ln" -> stack.addLast(Math.log(stack.removeLast()))
+                "√" -> stack.addLast(Math.sqrt(stack.removeLast()))
                 else -> stack.addLast(token.toDouble())
             }
         }

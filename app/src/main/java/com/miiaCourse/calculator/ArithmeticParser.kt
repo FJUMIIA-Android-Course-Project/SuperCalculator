@@ -17,9 +17,9 @@ class ExpressionTokenizer(val input: String) {
         }
 
         // Parse numbers (integers or decimals)
-        if (input[position].isDigit() || input[position] == '.') {
+        if (input[position].isDigit() || input[position] == '.' || input[position].toString() == "e" || input[position].toString() == "π") {
             val numberBuilder = StringBuilder()
-            while (position < input.length && (input[position].isDigit() || input[position] == '.')) {
+            while (position < input.length && (input[position].isDigit() || input[position] == '.' || input[position].toString() == "e" || input[position].toString() == "π")) {
                 numberBuilder.append(input[position])
                 position++
             }
@@ -91,6 +91,16 @@ fun parseSingleExpression(tokenizer: ExpressionTokenizer): Double {
         val value = tokenizer.currentToken!!.toDouble()
         tokenizer.advanceToNextToken()
         return value
+    }
+
+    if (tokenizer.currentToken == "e") {
+        tokenizer.advanceToNextToken()
+        return Math.E
+    }
+
+    if (tokenizer.currentToken == "π") {
+        tokenizer.advanceToNextToken()
+        return Math.PI
     }
 
     if (tokenizer.currentToken in listOf("+", "-")) {
