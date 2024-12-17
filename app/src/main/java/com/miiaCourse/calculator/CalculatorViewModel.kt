@@ -1,301 +1,334 @@
 package com.miiaCourse.calculator
 
-import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import kotlin.math.cos
-import kotlin.math.ln
-import kotlin.math.log10
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.math.tan
+import kotlin.math.*
 
 /**
- * ViewModel for the Calculator screen.
- * Handles the logic for calculations and manages the state of the expression and result.
+ * CalculatorViewModel handles the logic of a calculator app,
+ * including expression parsing, implicit multiplication, infix-to-postfix conversion,
+ * and evaluating postfix expressions. This class uses state management to dynamically
+ * update and reflect calculation results.
  */
 class CalculatorViewModel : ViewModel() {
-    /**
-     * The current expression being entered by the user.
-     * Uses TextFieldValue to manage text and cursor position.
-     */
+
+    // The current expression being edited by the user.
     var currentExpression by mutableStateOf(TextFieldValue(""))
 
-    /**
-     * The result of the evaluation of the current expression.
-     * Updated whenever the expression changes or the user requests calculation.
-     */
+    // Holds the automatically evaluated result of the current expression.
     val evaluationResult = mutableStateOf("")
 
     /**
-     * Clears the current expression and the evaluation result.
+     * Clears the current expression and evaluation result.
      */
     fun clear() {
-        Log.d(TAG, "Clearing expression and result.")
+        Log.d("CalculatorViewModel", "Clearing expression and result")
         currentExpression = TextFieldValue("")
         evaluationResult.value = ""
     }
 
     /**
-     * Adds a character to the current expression at the cursor position.
-     *
+     * Adds a character (e.g., numbers, operators, functions) to the current expression
+     * at the current cursor position.
      * @param character The character to be added.
      */
     fun addCharacterToExpression(character: String) {
         val currentText = currentExpression.text
         val cursorPosition = currentExpression.selection.start
 
-        Log.d(TAG, "Adding character: $character at position: $cursorPosition in expression: $currentText")
-
         val newText = StringBuilder(currentText)
-
-        // Logic to insert a multiplication symbol
-        if (character == "(") {
-            if (cursorPosition > 0) {
-                val prevChar = currentText[cursorPosition - 1]
-
-                // If the previous character is a digit or a right parenthesis, insert a multiplication symbol before "("
-                if (prevChar.isDigit() || prevChar == ')') {
-                    newText.insert(cursorPosition, "×")
-                }
-            }
-        }
-
-        // Check for ')' case, insert multiplication if a digit is entered after ')'
-        if (character.first().isDigit()) {
-            if (cursorPosition > 0) {
-                val prevChar = currentText[cursorPosition - 1]
-
-                // If the previous character is ')', insert a multiplication symbol before the digit
-                if (prevChar == ')') {
-                    newText.insert(cursorPosition, "×")
-                }
-            }
-        }
-
-        // Insert the current character
         newText.insert(cursorPosition, character)
 
-        // Update currentExpression
         currentExpression = TextFieldValue(
             newText.toString(),
             selection = androidx.compose.ui.text.TextRange(cursorPosition + character.length)
         )
-
-        Log.d(TAG, "Updated expression: $newText")
-
+        Log.d("CalculatorViewModel", "Updated expression: $newText")
         autoCalculateResult()
     }
 
     /**
-     * Removes the last character from the current expression.
+     * Removes the last character before the cursor from the current expression.
      */
     fun removeLastCharacter() {
         val currentText = currentExpression.text
         val cursorPosition = currentExpression.selection.start
-
         if (currentText.isEmpty() || cursorPosition == 0) return
 
-        // Define all supported function names (including functions that need parentheses)
-        val functions = listOf("sin(", "cos(", "tan(", "log(", "ln(", "√(")
-
         val updatedText = StringBuilder(currentText)
-        var newPosition = cursorPosition - 1
+        updatedText.deleteCharAt(cursorPosition - 1)
 
-        // Check if there is a function name and parenthesis before the cursor (e.g., sin(, cos()
-        var deletedFunction = false
-        for (function in functions) {
-            val functionLength = function.length
-            if (newPosition - functionLength + 1 >= 0 &&
-                currentText.substring(newPosition - functionLength + 1, newPosition + 1) == function
-            ) {
-                updatedText.delete(newPosition - functionLength + 1, newPosition + 1)
-                newPosition -= functionLength
-                deletedFunction = true
-                break
-            }
-        }
-
-        // If it's not a function name, delete a single character
-        if (!deletedFunction) {
-            updatedText.deleteCharAt(newPosition)
-            newPosition--
-        }
-
-        // Update currentExpression and the cursor position
         currentExpression = TextFieldValue(
             updatedText.toString(),
-            selection = androidx.compose.ui.text.TextRange(maxOf(newPosition + 1, 0))
+            selection = androidx.compose.ui.text.TextRange(cursorPosition - 1)
         )
 
-        Log.d("CalculatorViewModel", "Updated expression after removal: ${currentExpression.text}")
+        Log.d("CalculatorViewModel", "Expression after removal: $updatedText")
         autoCalculateResult()
     }
 
     /**
-     * Calculates the result of the current expression.
-     * Updates the currentExpression with the result and clears the evaluationResult.
+     * Performs a full calculation of the current expression.
+     * If successful, updates the expression with the calculated result.
+     * If any error occurs, the result is marked as invalid.
      */
     fun calculateResult() {
         try {
-            Log.d(TAG, "Calculating result for expression: ${currentExpression.text}")
-            val postfixExpression = infixToPostfix(currentExpression.text)
-            val result = evaluatePostfix(postfixExpression)
+            Log.d("CalculatorViewModel", "Starting calculation for expression: ${currentExpression.text}")
 
-            Log.d(TAG, "Postfix expression: $postfixExpression")
-            Log.d(TAG, "Calculated result: $result")
+            val expr = currentExpression.text
+            val tokens = tokenize(expr)
+            Log.d("CalculatorViewModel", "Tokenized expression: $tokens")
 
-            // Update currentExpression with the result and clear evaluationResult
-            currentExpression = TextFieldValue(
-                result,
-                selection = androidx.compose.ui.text.TextRange(result.length)
-            )
+            val finalTokens = insertImplicitMultiplication(tokens)
+            Log.d("CalculatorViewModel", "After implicit multiplication: $finalTokens")
+
+            val postfix = infixToPostfix(finalTokens)
+            Log.d("CalculatorViewModel", "Postfix notation: $postfix")
+
+            val result = evaluatePostfix(postfix)
+            Log.d("CalculatorViewModel", "Final result: $result")
+
+            currentExpression = TextFieldValue(result, selection = androidx.compose.ui.text.TextRange(result.length))
             evaluationResult.value = ""
         } catch (e: Exception) {
-            Log.e(TAG, "Error calculating result: ${e.message}")
+            Log.e("CalculatorViewModel", "Error during calculation: ${e.message}")
             evaluationResult.value = "Invalid Syntaxes"
         }
     }
 
     /**
      * Automatically calculates the result of the current expression as the user types.
-     * Updates the evaluationResult with the calculated value.
      */
     private fun autoCalculateResult() {
         try {
-            Log.d(TAG, "Auto-calculating for expression: ${currentExpression.text}")
-            val postfixExpression = infixToPostfix(currentExpression.text)
-            val result = evaluatePostfix(postfixExpression)
+            val expr = currentExpression.text
+            if (expr.isBlank()) {
+                evaluationResult.value = ""
+                return
+            }
+            Log.d("CalculatorViewModel", "Auto-calculating for expression: $expr")
 
-            Log.d(TAG, "Auto-calculated postfix: $postfixExpression")
-            Log.d(TAG, "Auto-calculated result: $result")
+            val tokens = tokenize(expr)
+            Log.d("CalculatorViewModel", "Tokenized expression: $tokens")
+
+            val finalTokens = insertImplicitMultiplication(tokens)
+            Log.d("CalculatorViewModel", "After implicit multiplication: $finalTokens")
+
+            val postfix = infixToPostfix(finalTokens)
+            Log.d("CalculatorViewModel", "Postfix notation: $postfix")
+
+            val result = evaluatePostfix(postfix)
+            Log.d("CalculatorViewModel", "Auto-calculated result: $result")
 
             evaluationResult.value = result
         } catch (e: Exception) {
-            // If an error occurs during calculation, clear the evaluationResult
-            Log.e(TAG, "Error during auto-calculation: ${e.message}")
+            Log.e("CalculatorViewModel", "Auto-calculation error: ${e.message}")
             evaluationResult.value = ""
         }
     }
 
     /**
-     * Converts an infix expression to postfix notation.
-     *
-     * @param expression The infix expression string.
-     * @return A list of tokens representing the postfix expression.
+     * Converts a mathematical expression string into a list of tokens.
+     * Tokens include numbers, constants (e, π), operators (+, -, ×, ÷, ^),
+     * parentheses, and supported functions (sin, cos, tan, log, ln, √).
      */
-    private fun infixToPostfix(expression: String): List<String> {
-        Log.d(TAG, "Converting to postfix: $expression")
-        val output = mutableListOf<String>()
-        val operators = ArrayDeque<String>()
-        // Define operator precedence
-        val precedence = mapOf('+' to 1, '-' to 1, '×' to 2, '÷' to 2, '^' to 3, "log" to 4, "ln" to 4, "sin" to 4, "cos" to 4, "tan" to 4, "√" to 4)
-
-        var number = ""
+    private fun tokenize(expression: String): List<String> {
+        Log.d("CalculatorViewModel", "Tokenizing expression: $expression")
+        val tokens = mutableListOf<String>()
         var i = 0
-        var lastWasNumberOrRightParenthesis = false
-
         while (i < expression.length) {
-            val char = expression[i]
+            val c = expression[i]
 
             when {
-                // Handle numbers and decimal points
-                char.isDigit() || char == '.' -> {
-                    number += char
-                    lastWasNumberOrRightParenthesis = true
+                c.isWhitespace() -> i++  // Ignore whitespaces
 
+                c.isDigit() || c == '.' -> {
+                    // Handle numbers (including decimals)
+                    val start = i
+                    while (i < expression.length && (expression[i].isDigit() || expression[i] == '.')) i++
+                    tokens.add(expression.substring(start, i))
+                    continue
                 }
 
-                // Handle function names, such as sin, cos, tan
-                expression.startsWith("sin", i) || expression.startsWith("cos", i) ||
-                        expression.startsWith("tan", i) || expression.startsWith("log", i) ||
-                        expression.startsWith("ln", i) || expression.startsWith("√", i) -> {
-                    if (number.isNotEmpty()) {
-                        output.add(number)
-                        number = ""
+                // Add constants such as Euler's and Pi
 
-                        if (lastWasNumberOrRightParenthesis) {
-                            operators.addLast("×")
-                        }
-                    }
-                    val functionName = when {
-                        expression.startsWith("sin", i) -> "sin"
-                        expression.startsWith("cos", i) -> "cos"
-                        expression.startsWith("tan", i) -> "tan"
-                        expression.startsWith("log", i) -> "log"
-                        expression.startsWith("ln", i) -> "ln"
-                        expression.startsWith("√", i) -> "√"
-                        else -> ""
-                    }
-                    operators.addLast(functionName) // Push the function onto the stack
-                    i += functionName.length - 1 // Skip the length of the function name
+                c == 'e' -> {
+                    tokens.add(Math.E.toString())
+                    i++
                 }
 
-                // Handle left parenthesis
-                char == '(' -> {
-                    if (number.isNotEmpty()) {
-                        output.add(number)
-                        number = ""
-                    }
-                    operators.addLast(char.toString())
+                c == 'π' -> {
+                    tokens.add(Math.PI.toString())
+                    i++
                 }
 
-                // Handle right parenthesis
-                char == ')' -> {
-                    if (number.isNotEmpty()) {
-                        output.add(number)
-                        number = ""
-                    }
+                c in "+-×÷^()" -> {
+                    tokens.add(c.toString())
+                    i++
+                }
+
+                // Handle functions
+                expression.startsWith("sin", i) -> {
+                    tokens.add("sin")
+                    i += 3
+                }
+                expression.startsWith("cos", i) -> {
+                    tokens.add("cos")
+                    i += 3
+                }
+                expression.startsWith("tan", i) -> {
+                    tokens.add("tan")
+                    i += 3
+                }
+                expression.startsWith("log", i) -> {
+                    tokens.add("log")
+                    i += 3
+                }
+                expression.startsWith("ln", i) -> {
+                    tokens.add("ln")
+                    i += 2
+                }
+                expression.startsWith("√", i) -> {
+                    tokens.add("√")
+                    i += 1
+                }
+
+                else -> {
+                    Log.d("CalculatorViewModel", "Tokens: $tokens")
+                    throw IllegalArgumentException("Invalid character at position $i: ${expression[i]}")
+                }
+            }
+        }
+        return tokens
+    }
+
+    /**
+     * Inserts implicit multiplication into the list of tokens where applicable.
+     * For example:
+     * - `2(3)` becomes `2×(3)`
+     * - `3sin(45)` becomes `3×sin(45)`
+     * - `(2)(3)` becomes `(2)×(3)`
+     */
+    private fun insertImplicitMultiplication(tokens: List<String>): List<String> {
+        Log.d("CalculatorViewModel", "Inserting implicit multiplication...")
+        if (tokens.isEmpty()) return tokens
+        val result = mutableListOf<String>()
+        val functions = setOf("sin","cos","tan","log","ln","√")
+
+        for ((index, token) in tokens.withIndex()) {
+            result.add(token)
+            if (index < tokens.lastIndex) {
+                val next = tokens[index+1]
+
+                val currentIsValue =
+                    token.matches(Regex("[0-9.]+")) || token == ")" || token == Math.E.toString() || token == Math.PI.toString()
+                val nextIsValueOrFunc = next.matches(Regex("[0-9.]+")) || next == "(" || next in functions || next == Math.E.toString() || next == Math.PI.toString()
+
+                if (currentIsValue && nextIsValueOrFunc && next != ")" && token != "(") {
+                    result.add("×")  // Insert implicit multiplication
+                }
+            }
+        }
+        Log.d("CalculatorViewModel", "Tokens after implicit multiplication: $result")
+        return result
+    }
+
+    /**
+     * Converts an infix expression to postfix notation using the Shunting-yard algorithm.
+     * Supports standard operators (+, -, ×, ÷, ^), constants (e, π), and functions (sin, cos, tan, log, ln, √).
+     */
+    private fun infixToPostfix(tokens: List<String>): List<String> {
+        Log.d("CalculatorViewModel", "Converting to postfix...")
+        val output = mutableListOf<String>()    // List to store the output postfix expression
+        val operators = ArrayDeque<String>()    // Stack to hold operators and functions
+
+        // Operator precedence and associativity
+        val precedence = mapOf(
+            "+" to 1, "-" to 1,
+            "×" to 2, "÷" to 2,
+            "^" to 3,                            // Exponentiation has higher precedence
+            "sin" to 4, "cos" to 4, "tan" to 4, "log" to 4, "ln" to 4, "√" to 4
+        )
+
+        // Process each token in the infix expression
+        for (token in tokens) {
+            when {
+                // Numbers or constants (e, π) go directly to the output
+                token.matches(Regex("[0-9.]+")) -> output.add(token)
+                token == Math.E.toString() || token == Math.PI.toString() -> output.add(token)
+
+                // Functions (sin, cos, tan, log, ln, √) are pushed to the stack
+                token in listOf("sin","cos","tan","log","ln","√") -> {
+                    operators.addLast(token)
+                }
+
+                // Left parenthesis: push to the stack; Right parenthesis: pop operators until a left parenthesis is found
+                token == "(" -> operators.addLast(token)
+
+                token == ")" -> {
                     while (operators.isNotEmpty() && operators.last() != "(") {
                         output.add(operators.removeLast())
                     }
-                    operators.removeLast() // Remove the left parenthesis
-                    if (operators.isNotEmpty() && operators.last() in precedence.keys) {
-                        output.add(operators.removeLast()) // If there is a function name, put it in the output
-                    }
-                }
-
-                // Handle operators
-                else -> {
-                    if (number.isNotEmpty()) {
-                        output.add(number)
-                        number = ""
-                    }
-                    while (operators.isNotEmpty() &&
-                        precedence.getOrDefault(operators.last(), 0) >= precedence.getOrDefault(char.toString(), 0)
-                    ) {
+                    if (operators.isEmpty()) throw IllegalArgumentException("Mismatched parentheses.")
+                    operators.removeLast() // remove "("
+                    // If a function is on the stack, pop it to the output
+                    if (operators.isNotEmpty() && operators.last() in functions) {
                         output.add(operators.removeLast())
                     }
-                    operators.addLast(char.toString())
                 }
+
+                // Operators (+, -, ×, ÷, ^)
+                token in listOf("+","-","×","÷","^") -> {
+                    // Handle right-associativity for ^ (exponentiation)
+                    val tokenPrecedence = precedence[token]!!
+                    while (operators.isNotEmpty()) {
+                        val top = operators.last()
+                        val topPrecedence = precedence.getOrDefault(top,0)
+                        if (top == "(") break  // Stop at left parenthesis
+                        if (token == "^") {
+                            if (topPrecedence > tokenPrecedence) {
+                                output.add(operators.removeLast())
+                            } else break
+                        } else {
+                            if (topPrecedence >= tokenPrecedence) {
+                                output.add(operators.removeLast())
+                            } else break
+                        }
+                    }
+                    operators.addLast(token)  // Push the current operator onto the stack
+                }
+                // Invalid token
+                else -> throw IllegalArgumentException("Invalid token: $token")
             }
-            i++
         }
 
-        if (number.isNotEmpty()) output.add(number)
-        while (operators.isNotEmpty()) output.add(operators.removeLast())
-
-        Log.d("CalculatorViewModel", "Postfix result: $output")
+        // Pop any remaining operators from the stack to the output
+        while (operators.isNotEmpty()) {
+            val op = operators.removeLast()
+            if (op == "(" || op == ")") throw IllegalArgumentException("Mismatched parentheses.")
+            output.add(op)
+        }
+        Log.d("CalculatorViewModel", "Postfix tokens: $output")
         return output
     }
 
     /**
-     * Evaluates a postfix expression and returns the result.
-     *
-     * @param postfix The postfix expression as a list of tokens.
-     * @return The calculated result of the expression.
+     * Evaluates a postfix expression and returns the result as a formatted string.
      */
     private fun evaluatePostfix(postfix: List<String>): String {
-        Log.d(TAG, "Evaluating postfix expression: $postfix")
+        Log.d("CalculatorViewModel", "Evaluating postfix: $postfix")
         val stack = ArrayDeque<Double>()
+
+        // Process each token in the postfix expression
         for (token in postfix) {
-            Log.d(TAG, "Processing token: $token")
-            when (token) {
+            Log.d("CalculatorViewModel", "Processing token: $token")
+
+            when(token) {
                 "+" -> stack.addLast(stack.removeLast() + stack.removeLast())
                 "-" -> stack.addLast(-stack.removeLast() + stack.removeLast())
                 "×" -> stack.addLast(stack.removeLast() * stack.removeLast())
@@ -304,7 +337,6 @@ class CalculatorViewModel : ViewModel() {
                     val a = stack.removeLast()
                     stack.addLast(a / b)
                 }
-
                 "^" -> {
                     val b = stack.removeLast()
                     val a = stack.removeLast()
@@ -317,19 +349,36 @@ class CalculatorViewModel : ViewModel() {
                 "log" -> stack.addLast(log10(stack.removeLast()))
                 "ln" -> stack.addLast(ln(stack.removeLast()))
                 "√" -> stack.addLast(sqrt(stack.removeLast()))
-                else -> stack.addLast(token.toDouble())
+
+                // Default case: Assume the token is a number and push it onto the stack
+                else -> {
+                    try {
+                        stack.addLast(token.toDouble())
+                    } catch (e: NumberFormatException) {
+                        throw IllegalArgumentException("Invalid token in postfix expression: $token")
+                    }
+                }
             }
         }
 
-        val result = stack.last()
-        Log.d(TAG, "Final result: $result")
+        // Ensure only one result remains on the stack
+        if (stack.size != 1) throw IllegalArgumentException("Invalid postfix expression.")
 
+        // Retrieve the final result
+        val result = stack.last()
+        Log.d("CalculatorViewModel", "Final result: $result")
+
+        // Format the result to remove trailing zeros for cleaner output
         val formattedResult = if (result % 1 == 0.0) {
-            result.toInt().toString()
+            result.toInt().toString() // Convert to integer if the result is whole
         } else {
-            String.format("%.10f", result).trimEnd('0')
+            String.format("%.10f", result).trimEnd('0')  // Trim unnecessary trailing zeros
         }
-        Log.d(TAG, "formattedResult: $formattedResult")
+
         return formattedResult
+    }
+
+    companion object {
+        private val functions = setOf("sin","cos","tan","log","ln","√")
     }
 }
