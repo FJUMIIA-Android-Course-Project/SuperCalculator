@@ -49,12 +49,46 @@ class CalculatorViewModel : ViewModel() {
     fun addCharacterToExpression(character: String) {
         val currentText = currentExpression.text
         val cursorPosition = currentExpression.selection.start
+
         Log.d(TAG, "Adding character: $character at position: $cursorPosition in expression: $currentText")
 
-        val newText = StringBuilder(currentText).insert(cursorPosition, character).toString()
-        currentExpression = TextFieldValue(newText, selection = androidx.compose.ui.text.TextRange(cursorPosition + character.length))
+        val newText = StringBuilder(currentText)
 
-        // Trigger automatic calculation of the result
+        // Logic to insert a multiplication symbol
+        if (character == "(") {
+            if (cursorPosition > 0) {
+                val prevChar = currentText[cursorPosition - 1]
+
+                // If the previous character is a digit or a right parenthesis, insert a multiplication symbol before "("
+                if (prevChar.isDigit() || prevChar == ')') {
+                    newText.insert(cursorPosition, "×")
+                }
+            }
+        }
+
+        // Check for ')' case, insert multiplication if a digit is entered after ')'
+        if (character.first().isDigit()) {
+            if (cursorPosition > 0) {
+                val prevChar = currentText[cursorPosition - 1]
+
+                // If the previous character is ')', insert a multiplication symbol before the digit
+                if (prevChar == ')') {
+                    newText.insert(cursorPosition, "×")
+                }
+            }
+        }
+
+        // Insert the current character
+        newText.insert(cursorPosition, character)
+
+        // Update currentExpression
+        currentExpression = TextFieldValue(
+            newText.toString(),
+            selection = androidx.compose.ui.text.TextRange(cursorPosition + character.length)
+        )
+
+        Log.d(TAG, "Updated expression: $newText")
+
         autoCalculateResult()
     }
 
@@ -67,34 +101,41 @@ class CalculatorViewModel : ViewModel() {
 
         if (currentText.isEmpty() || cursorPosition == 0) return
 
-        val newText = StringBuilder(currentText)
-        var i = cursorPosition - 1
+        // Define all supported function names (including functions that need parentheses)
+        val functions = listOf("sin(", "cos(", "tan(", "log(", "ln(", "√(")
 
-        // If a function name is encountered, delete the entire function
-        if (i >= 2) {
-            val possibleFunction = currentText.substring(maxOf(0, i - 2), i + 1) // Check the previous 3 characters
-            if (possibleFunction in listOf("sin", "cos", "tan", "log", "ln", "√")) {
-                newText.delete(i - 2, i + 1) // Delete the function name
-                i -= 3
-            } else {
-                newText.deleteCharAt(i) // Normal deletion
-                i--
+        val updatedText = StringBuilder(currentText)
+        var newPosition = cursorPosition - 1
+
+        // Check if there is a function name and parenthesis before the cursor (e.g., sin(, cos()
+        var deletedFunction = false
+        for (function in functions) {
+            val functionLength = function.length
+            if (newPosition - functionLength + 1 >= 0 &&
+                currentText.substring(newPosition - functionLength + 1, newPosition + 1) == function
+            ) {
+                updatedText.delete(newPosition - functionLength + 1, newPosition + 1)
+                newPosition -= functionLength
+                deletedFunction = true
+                break
             }
-        } else {
-            newText.deleteCharAt(i)
-            i--
         }
 
-        // Update the expression content and cursor position
+        // If it's not a function name, delete a single character
+        if (!deletedFunction) {
+            updatedText.deleteCharAt(newPosition)
+            newPosition--
+        }
+
+        // Update currentExpression and the cursor position
         currentExpression = TextFieldValue(
-            newText.toString(),
-            selection = androidx.compose.ui.text.TextRange(maxOf(i + 1, 0))
+            updatedText.toString(),
+            selection = androidx.compose.ui.text.TextRange(maxOf(newPosition + 1, 0))
         )
 
         Log.d("CalculatorViewModel", "Updated expression after removal: ${currentExpression.text}")
         autoCalculateResult()
     }
-
 
     /**
      * Calculates the result of the current expression.
