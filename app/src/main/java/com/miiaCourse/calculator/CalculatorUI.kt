@@ -25,6 +25,7 @@ import com.miiaCourse.calculator.ui.theme.DarkGray
 import com.miiaCourse.calculator.ui.theme.DarkRed
 import com.miiaCourse.calculator.ui.theme.MediumGray
 import com.miiaCourse.calculator.ui.theme.PrussianBlue
+import java.time.format.TextStyle
 
 @Preview(showBackground = true)
 @Composable
@@ -145,7 +146,59 @@ fun CalculatorUI(
                         .padding(horizontal = 18.dp),
                     verticalArrangement = Arrangement.spacedBy(buttonSpacing)
                 ) {
-                    // First row of buttons (log, ln, ^, e, π)
+                    // First row of buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
+                    ) {
+                        // Button for Switching the buttons
+                        CalculatorButton(
+                            symbol = "Shift",
+                            color = DarkRed,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { },
+                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+                        )
+                        // Button for logarithm function with different base
+                        CalculatorButton(
+                            symbol = "log[a]",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("log[](") }
+                        )
+                        // Button for n-order root function
+                        CalculatorButton(
+                            symbol = "[a]√",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("[]√") }
+                        )
+                        // Button for factorial
+                        CalculatorButton(
+                            symbol = "!",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("!") }
+                        )
+                        // Button for combinatorics "n choose r"
+                        CalculatorButton(
+                            symbol = "nCr",
+                            color = PrussianBlue,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .weight(1f)
+                                .clickable { viewModel.addCharacterToExpression("nCr(,)") }
+                        )
+                    }
+                    // Second row of buttons (log, ln, ^, e, π)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(buttonSpacing)
