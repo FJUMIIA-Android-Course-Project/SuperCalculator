@@ -6,10 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -47,6 +53,10 @@ fun CalculatorUI(
     // Spacing between buttons
     val buttonSpacing = 8.dp
 
+    var showMenu by remember { mutableStateOf(false) }
+    val userLogs = remember { mutableStateListOf<String>() }
+
+
     // Log the current expression for debugging
     Log.d("CalculatorUI", "Expression: ${viewModel.currentExpression}")
 
@@ -61,6 +71,33 @@ fun CalculatorUI(
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White
                     )
+                },
+                actions = {
+                    // Options menu button
+                    IconButton(onClick = { showMenu = !showMenu }) {
+                        Icon(Icons.Filled.MoreVert, "Options", tint = Color.White)
+                    }
+                    // Dropdown menu for options
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        modifier = Modifier.background(MediumGray)
+                    ) {
+                        // Menu item to show user logs
+                        DropdownMenuItem(
+                            text = { Text("User Logs", color = Color.White) },
+                            onClick = {
+                                showMenu = false
+                                // TODO: Implement logic to display user logs
+                                // For now, just log a message
+                                Log.d("CalculatorUI", "Show User Logs clicked")
+                                // Example: Add a log entry
+                                userLogs.add("User viewed logs at ${java.time.LocalDateTime.now()}")
+
+                            }
+                        )
+                        // Add more menu items as needed
+                    }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = PrussianBlue
