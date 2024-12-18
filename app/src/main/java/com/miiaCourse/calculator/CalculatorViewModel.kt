@@ -18,6 +18,7 @@ class CalculatorViewModel : ViewModel() {
 
     var currentExpression by mutableStateOf(TextFieldValue(""))
     val evaluationResult = mutableStateOf("")
+    val Ans = mutableStateOf("")
 
     /**
      * Clears the current expression and evaluation result.
@@ -27,7 +28,9 @@ class CalculatorViewModel : ViewModel() {
         currentExpression = TextFieldValue("")
         evaluationResult.value = ""
     }
-
+    init {
+        ArithmeticParser.viewModel = this  // 初始化 viewModel
+    }
     /**
      * Adds a character (e.g., numbers, operators, functions) to the current expression
      * at the current cursor position.
@@ -96,11 +99,16 @@ class CalculatorViewModel : ViewModel() {
             Log.d("CalculatorViewModel", "Auto-calculated result: $result")
 
             evaluationResult.value = result
+
+            Ans.value = evaluationResult.value
+
         } catch (e: Exception) {
             Log.e("CalculatorViewModel", "Auto-calculation error: ${e.message}")
             evaluationResult.value = ""
         }
     }
+
+
 
     companion object {
         val functions = setOf("sin", "cos", "tan", "log", "ln", "√", "log[")

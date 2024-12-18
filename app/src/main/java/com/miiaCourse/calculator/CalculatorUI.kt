@@ -45,6 +45,7 @@ fun CalculatorUI(
     // State variables for current expression and evaluation result
     val currentExpression = viewModel.currentExpression
     val evaluationResult = viewModel.evaluationResult
+    val Ans = viewModel.Ans
     // Spacing between buttons
     val buttonSpacing = 8.dp
 
@@ -153,13 +154,13 @@ fun CalculatorUI(
                     ) {
                         // Button for Switching the buttons
                         CalculatorButton(
-                            symbol = "Shift",
+                            symbol = "√",
                             color = DarkRed,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { },
-                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+                                .clickable { viewModel.addCharacterToExpression("√(") },
+
                         )
                         // Button for logarithm function with different base
                         CalculatorButton(
@@ -177,7 +178,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("[]√") }
+                                .clickable { viewModel.addCharacterToExpression("[]√(") }
                         )
                         // Button for factorial
                         CalculatorButton(
@@ -482,12 +483,13 @@ fun CalculatorUI(
                         )
                         // Button for square root "√"
                         CalculatorButton(
-                            symbol = "√",
+                            symbol = "Shift",
                             color = DarkRed,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("√(") }
+                                .clickable {  },
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
                         )
                         // Button for answer "Ans"
                         CalculatorButton(
@@ -496,7 +498,8 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.autoCalculateResult() }
+                                .clickable { viewModel.clear()
+                                    viewModel.addCharacterToExpression("Ans") }
                         )
                         // Button for equals "="
                         CalculatorButton(

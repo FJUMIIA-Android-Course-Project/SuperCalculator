@@ -11,7 +11,7 @@ import kotlin.math.sqrt
 import kotlin.math.tan
 
 object ArithmeticParser {
-
+    lateinit var viewModel: CalculatorViewModel
     /**
      * Parses a subexpression enclosed by the given open and close characters.
      * For example, given an expression like "2+sin(30)", calling
@@ -92,6 +92,10 @@ object ArithmeticParser {
                     }
                 }
                 // Function handling: sin, cos, tan, log, ln, √
+                expression.startsWith("Ans", i) -> {
+                    subTokens.add("Ans")
+                    i += 3
+                }
                 expression.startsWith("sin", i) -> {
                     subTokens.add("sin")
                     i += 3
@@ -259,6 +263,8 @@ object ArithmeticParser {
                 // Numbers or constants (e, π) go directly to the output
                 token.matches(Regex("[0-9.]+")) -> output.add(token)
                 token == Math.E.toString() || token == Math.PI.toString() -> output.add(token)
+
+                token == "Ans" -> output.add(viewModel.Ans.value)
 
                 // Functions (sin, cos, tan, log, ln, √) are pushed to the stack
                 token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base") -> {
