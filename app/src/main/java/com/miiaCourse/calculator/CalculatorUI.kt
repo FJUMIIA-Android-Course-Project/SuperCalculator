@@ -496,7 +496,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.calculateResult() }
+                                .clickable { viewModel.autoCalculateResult() }
                         )
                         // Button for equals "="
                         CalculatorButton(
@@ -505,7 +505,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.calculateResult() }
+                                .clickable { viewModel.autoCalculateResult() }
                         )
                     }
                 }
