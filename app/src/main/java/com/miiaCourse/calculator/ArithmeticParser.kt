@@ -159,7 +159,38 @@ object ArithmeticParser {
                     subTokens.add("log")
                     i += 3
                 }
+                expression.startsWith("C[", i) -> {  // 處理 "C["
+                    // 解析 a 的值
+                    val (aTokens, aEnd) = parseSubexpression(expression, i + 2, '[', ',')  //  解析 C[a,
+                    // 檢查 aTokens 是否為空，如果為空則丟擲異常
+                    if (aTokens.isEmpty()) {
+                        throw IllegalArgumentException("Missing first value for C[,] operation.")
+                    }
+                    // 處理 aTokens，例如將其轉換為 Int
+                    val aValue = aTokens.joinToString("").toIntOrNull()
+                        ?: throw IllegalArgumentException("Invalid first value for C[,] operation.")
 
+                    // 解析 b 的值
+                        if (aEnd < expression.length && expression[aEnd] == ',') {
+                        val (bTokens, bEnd) = parseSubexpression(expression, aEnd + 1, ',', ']')
+                        // 檢查 bTokens 是否為空，如果為空則丟擲異常
+                        if (bTokens.isEmpty()) {
+                            throw IllegalArgumentException("Missing second value for C[,] operation.")
+                        }
+                        // 處理 bTokens，例如將其轉換為 Int
+                        val bValue = bTokens.joinToString("").toIntOrNull()
+                            ?: throw IllegalArgumentException("Invalid second value for C[,] operation.")
+
+                        // 將 a 和 b 的值添加到 subTokens 列表中
+                        subTokens.add(aValue.toString())  // 添加 a 的值
+                        subTokens.add(bValue.toString())  // 添加 b 的值
+                        subTokens.add("C")  // 使用 "C" 表示組合數運算
+
+                        i = bEnd + 1  // 跳過 ']'
+                    } else {
+                        throw IllegalArgumentException("Invalid format for C[,] operation.")
+                    }
+                }
                 // Return upon encountering the closing character
                 c == closeChar -> {
                     return Pair(subTokens, i + 1)
@@ -201,6 +232,10 @@ object ArithmeticParser {
      private fun factorial(n: Int): Int {
         if (n == 0) return 1
         return n * factorial(n - 1)
+     }
+     private fun nCr(n: Int, r: Int): Int {
+        if (r == 0 || n == r) return 1
+        return nCr(n - 1, r - 1) + nCr(n - 1, r)
      }
     /**
      * Inserts implicit multiplication into the list of tokens where applicable.
@@ -274,7 +309,7 @@ object ArithmeticParser {
             "×" to 2, "÷" to 2,
             "^" to 3,                            // Exponentiation has higher precedence
             "sin" to 4, "cos" to 4, "tan" to 4, "log" to 4, "ln" to 4, "√" to 4,
-            "log_base" to 4, "sqrt_base" to 4, "!" to 4
+            "log_base" to 4, "sqrt_base" to 4, "!" to 4, "C" to 4
         )
 
         // Process each token in the infix expression
@@ -292,7 +327,7 @@ object ArithmeticParser {
                 }
 
                 // Functions (sin, cos, tan, log, ln, √) are pushed to the stack
-                token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base","sqrt_base","!") -> {
+                token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base", "sqrt_base", "!", "C") -> {
                     operators.addLast(token)
                 }
 
@@ -404,6 +439,15 @@ object ArithmeticParser {
                         throw IllegalArgumentException("Cannot calculate 0th root.")
                     }
                     stack.addLast(b.pow(1.0 / a))
+                }
+                "C" -> {
+                    val b = stack.removeLast().toInt()  //  取得 b 的值
+                    val a = stack.removeLast().toInt()  //  取得 a 的值
+                    // 檢查 a 和 b 的值是否有效，例如 a >= b, a >= 0, b >= 0 等等
+                    if (a < 0 || b < 0 || a < b) {
+                        throw IllegalArgumentException("Invalid values for C operation.")
+                    }
+                    stack.addLast(nCr(a, b).toDouble())  //  計算 C(a, b)，並將結果推回堆疊
                 }
                 // Default case: Assume the token is a number and push it onto the stack
                 else -> {

@@ -191,12 +191,12 @@ fun CalculatorUI(
                         )
                         // Button for combinatorics "n choose r"
                         CalculatorButton(
-                            symbol = "nCr",
+                            symbol = "C[,]",
                             color = PrussianBlue,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("nCr(,)") }
+                                .clickable { viewModel.addCharacterToExpression("C[,]") }
                         )
                     }
                     // Second row of buttons (log, ln, ^, e, π)
