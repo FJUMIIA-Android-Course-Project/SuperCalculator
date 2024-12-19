@@ -23,10 +23,16 @@ class CalculatorViewModel : ViewModel() {
     /**
      * Clears the current expression and evaluation result.
      */
-    fun clear() {
+    fun clearForAns() {
         Log.d("CalculatorViewModel", "Clearing expression and result")
         currentExpression = TextFieldValue("")
         evaluationResult.value = ""
+    }
+    fun allClear() {
+        Log.d("CalculatorViewModel", "Clearing expression and result")
+        currentExpression = TextFieldValue("")
+        evaluationResult.value = ""
+        Ans.value = "0"
     }
     fun saveAns(){
         if(evaluationResult.value.isNotEmpty()){

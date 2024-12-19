@@ -340,7 +340,7 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.clear() }
+                                .clickable { viewModel.allClear() }
                         )
                         // Button for delete "Del"
                         CalculatorButton(
@@ -500,7 +500,7 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable {
                                     viewModel.saveAns()
-                                    viewModel.clear()
+                                    viewModel.clearForAns()
                                     viewModel.addCharacterToExpression("Ans") }
                         )
                         // Button for equals "="
