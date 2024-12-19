@@ -14,5 +14,3 @@ val MediumGray = Color(0xFF272727)
 val DarkRed = Color(0xFF8b0000)
 val PrussianBlue = Color(0xFF003153)
 val DarkGray = Color(0xFF121212)
-
-
