@@ -1,22 +1,17 @@
 package com.miiaCourse.calculator
 
+import androidx.compose.ui.Modifier
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import kotlinx.coroutines.delay
@@ -26,19 +21,49 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.miiaCourse.calculator.ui.theme.DarkGray
-import com.miiaCourse.calculator.ui.theme.DarkRed
-import com.miiaCourse.calculator.ui.theme.MediumGray
-import com.miiaCourse.calculator.ui.theme.PrussianBlue
-import java.time.format.TextStyle
+import com.miiaCourse.calculator.ui.theme.*
+import kotlinx.coroutines.launch
 
-// Composable function for the Calculator UI
+@Composable
+fun CalculatorUI(viewModel: CalculatorViewModel) {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            // Material3 的 NavigationDrawerItem
+            NavigationDrawerItem(
+                label = { Text("Option 1", color = Color.White) },
+                selected = false,
+                onClick = {
+                    coroutineScope.launch { drawerState.close() }
+                    // 處理 Option 1 點擊事件
+                },
+                colors = NavigationDrawerItemDefaults.colors(
+                    unselectedContainerColor = Color.Transparent,
+                    selectedContainerColor = PrussianBlue,
+                    unselectedTextColor = Color.White,
+                    selectedTextColor = Color.White
+                ),
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                interactionSource = remember { MutableInteractionSource() }
+            )
+        }
+    ) {
+        CalculatorContent(
+            viewModel = viewModel,
+            openDrawer = {
+                coroutineScope.launch { drawerState.open() }
+            }
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalculatorUI(
-    viewModel: CalculatorViewModel,
-    openDrawer: () -> Unit
-) {
+fun CalculatorContent(viewModel: CalculatorViewModel, openDrawer: () -> Unit){
+
     // FocusRequester for managing focus on the input field
     val focusRequester = remember { FocusRequester() }
     // State variables for current expression and evaluation result
@@ -47,11 +72,6 @@ fun CalculatorUI(
     val Ans = viewModel.Ans
     // Spacing between buttons
     val buttonSpacing = 8.dp
-
-    var showMenu by remember { mutableStateOf(false) }
-    // State for user logs
-    val userLogs = remember { mutableStateListOf<String>() }
-
     // Log the current expression for debugging
     Log.d("CalculatorUI", "Expression: ${viewModel.currentExpression}")
 
@@ -83,6 +103,7 @@ fun CalculatorUI(
                     value = currentExpression,
                     // Update the expression in the ViewModel when the input changes
                     onValueChange = {
+                        val it = null
                         viewModel.currentExpression = it
                     },
                     readOnly = true, // Input field is read-only
@@ -161,7 +182,7 @@ fun CalculatorUI(
                                 .weight(1f)
                                 .clickable { viewModel.addCharacterToExpression("√(") },
 
-                        )
+                            )
                         // Button for logarithm function with different base
                         CalculatorButton(
                             symbol = "log[a]",
@@ -489,7 +510,7 @@ fun CalculatorUI(
                                 .aspectRatio(1f)
                                 .weight(1f)
                                 .clickable {  },
-                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
                         )
                         // Button for answer "Ans"
                         CalculatorButton(
