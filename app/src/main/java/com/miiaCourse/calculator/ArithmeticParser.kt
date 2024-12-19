@@ -115,7 +115,14 @@ object ArithmeticParser {
                     subTokens.add("ln")
                     i += 2
                 }
-
+                expression.startsWith("√[",i) -> {
+                    subTokens.add("sqrt_base")
+                    val (sqrtBaseTokens, sqrtBaseEnd) = parseSubexpression(expression, i + 2, '[', ']')
+                    subTokens.add("(")
+                    subTokens.addAll(sqrtBaseTokens)
+                    subTokens.add(")")
+                    i = sqrtBaseEnd
+                }
                 expression.startsWith("√", i) -> {
                     subTokens.add("√")
                     i++
@@ -124,12 +131,12 @@ object ArithmeticParser {
                 expression.startsWith("log[", i) -> {
                     subTokens.add("log_base")
                     // Parse the base part of log[...]
-                    val (baseTokens, baseEnd) = parseSubexpression(expression, i + 4, '[', ']')
+                    val (logBaseTokens, logBaseEnd) = parseSubexpression(expression, i + 4, '[', ']')
                     // Enclose the base with "(" ")"
                     subTokens.add("(")
-                    subTokens.addAll(baseTokens)
+                    subTokens.addAll(logBaseTokens)
                     subTokens.add(")")
-                    i = baseEnd
+                    i = logBaseEnd
 
                     // Next we should encounter ( ), parse the b part of log[a](b)
                     if (i < expression.length && expression[i] == '(') {
@@ -143,7 +150,7 @@ object ArithmeticParser {
                         throw IllegalArgumentException("Missing '(...)' after log[...] base specification.")
                     }
                 }
-
+                
                 expression.startsWith("log", i) -> {
                     subTokens.add("log")
                     i += 3
@@ -199,7 +206,7 @@ object ArithmeticParser {
         Log.d("CalculatorViewModel", "Inserting implicit multiplication...")
         if (tokens.isEmpty()) return tokens
         val result = mutableListOf<String>()
-        val functions = setOf("sin", "cos", "tan", "log", "ln", "√", "log_base")
+        val functions = setOf("sin", "cos", "tan", "log", "ln", "√", "log_base", "sqrt_base")
 
         for ((index, token) in tokens.withIndex()) {
             result.add(token)
@@ -224,7 +231,8 @@ object ArithmeticParser {
                 val shouldInsertMultiplication =
                     currentIsValue && nextIsValueOrFunc && next != ")" && token != "(" &&
                             !(token == ")" && next == "(") &&
-                            !(token in functions && next == "(")
+                            !(token in functions && next == "(") &&
+                            !(token == "]" && next == "√")
 
                 if (shouldInsertMultiplication) {
                     result.add("×")  // Insert implicit multiplication
@@ -254,7 +262,7 @@ object ArithmeticParser {
             "×" to 2, "÷" to 2,
             "^" to 3,                            // Exponentiation has higher precedence
             "sin" to 4, "cos" to 4, "tan" to 4, "log" to 4, "ln" to 4, "√" to 4,
-            "log_base" to 4
+            "log_base" to 4, "sqrt_base" to 4
         )
 
         // Process each token in the infix expression
@@ -267,7 +275,7 @@ object ArithmeticParser {
                 token == "Ans" -> output.add(viewModel.Ans.value)
 
                 // Functions (sin, cos, tan, log, ln, √) are pushed to the stack
-                token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base") -> {
+                token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base","sqrt_base") -> {
                     operators.addLast(token)
                 }
 
@@ -364,7 +372,14 @@ object ArithmeticParser {
                     if (a <= 0 || b <= 0) throw IllegalArgumentException("Logarithm base and value must be positive")
                     stack.addLast(log10(b) / log10(a))
                 }
-
+                "sqrt_base" -> {
+                    val b = stack.removeLast() // value
+                    val a = stack.removeLast() // base
+                    if (a == 0.0) {
+                        throw IllegalArgumentException("Cannot calculate 0th root.")
+                    }
+                    stack.addLast(b.pow(1.0 / a))
+                }
                 // Default case: Assume the token is a number and push it onto the stack
                 else -> {
                     try {

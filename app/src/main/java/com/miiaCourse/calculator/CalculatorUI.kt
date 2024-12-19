@@ -173,12 +173,12 @@ fun CalculatorUI(
                         )
                         // Button for n-order root function
                         CalculatorButton(
-                            symbol = "[a]√",
+                            symbol = "√[a]",
                             color = PrussianBlue,
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.addCharacterToExpression("[]√(") }
+                                .clickable { viewModel.addCharacterToExpression("√[](") }
                         )
                         // Button for factorial
                         CalculatorButton(
