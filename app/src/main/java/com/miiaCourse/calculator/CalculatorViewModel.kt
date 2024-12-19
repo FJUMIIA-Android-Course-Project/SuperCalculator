@@ -1,11 +1,16 @@
 package com.miiaCourse.calculator
 
+import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+
 import kotlin.math.*
 
 /**
@@ -14,12 +19,14 @@ import kotlin.math.*
  * and evaluating postfix expressions. This class uses state management to dynamically
  * update and reflect calculation results.
  */
-class CalculatorViewModel : ViewModel() {
+    class CalculatorViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val context = application.applicationContext
     var currentExpression by mutableStateOf(TextFieldValue(""))
     val evaluationResult = mutableStateOf("")
     val Ans = mutableStateOf("")
-
+    private val database = AppDatabase.getDatabase(context)
+    private val calculationResultDao = database.calculationResultDao()
     /**
      * Clears the current expression and evaluation result.
      */
@@ -117,8 +124,15 @@ class CalculatorViewModel : ViewModel() {
             evaluationResult.value = ""
         }
     }
-
-
+    private fun saveResultToDatabase(result: String) {
+        viewModelScope.launch {
+            calculationResultDao.insertResult(CalculationResult(result = result))
+            Log.d("CalculatorViewModel", "Result saved to database: $result")
+        }
+    }
+    fun saveAnswer(){
+        saveResultToDatabase(evaluationResult.value)
+    }
 
     companion object {
         val functions = setOf("sin", "cos", "tan", "log", "ln", "√", "log[", "sqrt[", "!")

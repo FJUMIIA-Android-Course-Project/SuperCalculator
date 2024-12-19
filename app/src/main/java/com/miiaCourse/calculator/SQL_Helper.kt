@@ -4,24 +4,29 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class SQL_helpler(
-    context: Context,
-    name: String = database,
-    factory: SQLiteDatabase.CursorFactory? = null,
-    version: Int = ver
-) : SQLiteOpenHelper(context, name, factory, version) {
+class CalculatorDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+
     companion object {
-        private const val database = "HistoryList" //資料庫名稱
-        private const val ver = 1 //資料庫版本
+        const val DATABASE_NAME = "calculator.db"
+        const val DATABASE_VERSION = 1
     }
+
     override fun onCreate(db: SQLiteDatabase) {
-        //建立HistoryList 資料表，表內有HistoryRecord一個欄位
-        db.execSQL("CREATE TABLE HistoryList(id text PRIMARY KEY, Record text not null)")
+        // 創建資料表
+        db.execSQL(
+            """
+            CREATE TABLE answers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                expression TEXT NOT NULL,
+                answer TEXT NOT NULL
+            )
+            """
+        )
     }
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int,
-                           newVersion: Int) {
-        //升級資料庫版本時，刪除舊資料表，並重新執行 onCreate()，建立新資料表
-        db.execSQL("DROP TABLE IF EXISTS HistoryList")
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        // 處理資料庫升級
+        db.execSQL("DROP TABLE IF EXISTS answers")
         onCreate(db)
     }
 }
