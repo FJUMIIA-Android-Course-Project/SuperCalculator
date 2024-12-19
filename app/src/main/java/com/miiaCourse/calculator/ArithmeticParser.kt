@@ -273,6 +273,11 @@ object ArithmeticParser {
                 token == Math.E.toString() || token == Math.PI.toString() -> output.add(token)
 
                 token == "Ans" -> output.add(viewModel.Ans.value)
+                token.isEmpty() -> {  // 處理空字串
+                    if (viewModel.Ans.value.isNotEmpty()) {  // 檢查 viewModel.Ans.value 是否為空
+                        output.add(viewModel.Ans.value)  // 添加上一次的答案
+                    }
+                }
 
                 // Functions (sin, cos, tan, log, ln, √) are pushed to the stack
                 token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base","sqrt_base") -> {

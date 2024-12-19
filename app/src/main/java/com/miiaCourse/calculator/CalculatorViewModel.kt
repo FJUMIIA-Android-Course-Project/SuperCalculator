@@ -27,9 +27,12 @@ class CalculatorViewModel : ViewModel() {
         Log.d("CalculatorViewModel", "Clearing expression and result")
         currentExpression = TextFieldValue("")
         evaluationResult.value = ""
+        Ans.value = ""
     }
     fun saveAns(){
-        Ans.value = evaluationResult.value
+        if(evaluationResult.value.isNotEmpty()){
+            Ans.value = evaluationResult.value
+        }
     }
     init {
         ArithmeticParser.viewModel = this  // 初始化 viewModel
