@@ -236,7 +236,7 @@ object ArithmeticParser {
                 b. Do not insert '×' if current token is a function (e.g., 'log_base') and next token is '('
                  */
                 val shouldInsertMultiplication =
-                    currentIsValue && nextIsValueOrFunc && next != ")" && token != "(" &&
+                    (currentIsValue || token == "!") && nextIsValueOrFunc && next != ")" && token != "(" &&  //  將 token == "!" 添加到 currentIsValue 的條件中
                             !(token == ")" && next == "(") &&
                             !(token in functions && next == "(") &&
                             !(token == "]" && next == "√")
@@ -246,6 +246,11 @@ object ArithmeticParser {
                     Log.d(
                         "CalculatorViewModel",
                         "Inserted implicit multiplication '×' between '$token' and '$next'"
+                    )
+                }else{
+                    Log.d(
+                        "CalculatorViewModel",
+                        "Not Inserted implicit multiplication '×' between '$token' and '$next'"
                     )
                 }
             }

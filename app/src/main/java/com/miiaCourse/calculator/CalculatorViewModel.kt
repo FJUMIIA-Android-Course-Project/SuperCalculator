@@ -121,6 +121,6 @@ class CalculatorViewModel : ViewModel() {
 
 
     companion object {
-        val functions = setOf("sin", "cos", "tan", "log", "ln", "√", "log[", "sqrt[","!")
+        val functions = setOf("sin", "cos", "tan", "log", "ln", "√", "log[", "sqrt[", "!")
     }
 }
