@@ -91,6 +91,10 @@ object ArithmeticParser {
                         }
                     }
                 }
+                expression.startsWith("!",i)->{
+                    subTokens.add("!")
+                    i++
+                }
                 // Function handling: sin, cos, tan, log, ln, √
                 expression.startsWith("Ans", i) -> {
                     subTokens.add("Ans")
@@ -194,7 +198,10 @@ object ArithmeticParser {
         Log.d("CalculatorViewModel", "Tokens: $tokens")
         return tokens
     }
-
+     private fun factorial(n: Int): Int {
+        if (n == 0) return 1
+        return n * factorial(n - 1)
+     }
     /**
      * Inserts implicit multiplication into the list of tokens where applicable.
      * For example:
@@ -262,7 +269,7 @@ object ArithmeticParser {
             "×" to 2, "÷" to 2,
             "^" to 3,                            // Exponentiation has higher precedence
             "sin" to 4, "cos" to 4, "tan" to 4, "log" to 4, "ln" to 4, "√" to 4,
-            "log_base" to 4, "sqrt_base" to 4
+            "log_base" to 4, "sqrt_base" to 4, "!" to 4
         )
 
         // Process each token in the infix expression
@@ -280,7 +287,7 @@ object ArithmeticParser {
                 }
 
                 // Functions (sin, cos, tan, log, ln, √) are pushed to the stack
-                token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base","sqrt_base") -> {
+                token in listOf("sin", "cos", "tan", "log", "ln", "√", "log_base","sqrt_base","!") -> {
                     operators.addLast(token)
                 }
 
@@ -363,6 +370,14 @@ object ArithmeticParser {
                     stack.addLast(a.pow(b))
                 }
 
+                "!" -> {  //  處理階乘
+                    val operand = stack.removeLast().toInt()  //  取得運算元，並轉換為 Int
+                    if (operand < 0) {
+                        throw IllegalArgumentException("Factorial is not defined for negative numbers.")
+                    }
+                    stack.addLast(factorial(operand).toDouble())  //  計算階乘，並將結果推回堆疊
+                }
+
                 "sin" -> stack.addLast(sin(Math.toRadians(stack.removeLast())))
                 "cos" -> stack.addLast(cos(Math.toRadians(stack.removeLast())))
                 "tan" -> stack.addLast(tan(Math.toRadians(stack.removeLast())))
@@ -395,6 +410,7 @@ object ArithmeticParser {
                 }
             }
         }
+
 
         // Ensure only one result remains on the stack
         if (stack.size != 1) throw IllegalArgumentException("Invalid postfix expression.")
