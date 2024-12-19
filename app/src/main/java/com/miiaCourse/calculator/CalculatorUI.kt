@@ -32,17 +32,10 @@ import com.miiaCourse.calculator.ui.theme.MediumGray
 import com.miiaCourse.calculator.ui.theme.PrussianBlue
 import java.time.format.TextStyle
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewCalculatorUI() {
-//    val mockViewModel = CalculatorViewModel()
-//    CalculatorUI(viewModel = mockViewModel)
-//}
-
 // Composable function for the Calculator UI
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalculatorWithDrawer(
+fun CalculatorUI(
     viewModel: CalculatorViewModel,
     openDrawer: () -> Unit
 ) {
@@ -505,7 +498,8 @@ fun CalculatorWithDrawer(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.saveAns()
+                                .clickable {
+                                    viewModel.saveAns()
                                     viewModel.clear()
                                     viewModel.addCharacterToExpression("Ans") }
                         )

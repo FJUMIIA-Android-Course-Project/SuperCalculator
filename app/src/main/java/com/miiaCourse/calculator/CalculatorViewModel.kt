@@ -27,7 +27,6 @@ class CalculatorViewModel : ViewModel() {
         Log.d("CalculatorViewModel", "Clearing expression and result")
         currentExpression = TextFieldValue("")
         evaluationResult.value = ""
-        Ans.value = ""
     }
     fun saveAns(){
         if(evaluationResult.value.isNotEmpty()){

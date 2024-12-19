@@ -407,7 +407,7 @@ object ArithmeticParser {
         val formattedResult = if (result % 1 == 0.0) {
             result.toInt().toString() // Convert to integer if the result is whole
         } else {
-            String.format("%.12f", result).trimEnd('0')  // Trim unnecessary trailing zeros
+            String.format("%.12f", result).trimEnd('0').trimEnd('.')  // Trim unnecessary trailing zeros
         }
 
         return formattedResult

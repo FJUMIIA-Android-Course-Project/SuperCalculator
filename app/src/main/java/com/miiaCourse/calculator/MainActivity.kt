@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
                         Text("Drawer Content")
                     },
                     content = {
-                        CalculatorWithDrawer(
+                        CalculatorUI(
                             viewModel = viewModel,
                             openDrawer = {
                                 coroutineScope.launch { drawerState.open() }
