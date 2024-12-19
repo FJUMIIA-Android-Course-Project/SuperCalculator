@@ -28,6 +28,9 @@ class CalculatorViewModel : ViewModel() {
         currentExpression = TextFieldValue("")
         evaluationResult.value = ""
     }
+    fun saveAns(){
+        Ans.value = evaluationResult.value
+    }
     init {
         ArithmeticParser.viewModel = this  // 初始化 viewModel
     }
@@ -100,7 +103,6 @@ class CalculatorViewModel : ViewModel() {
 
             evaluationResult.value = result
 
-            Ans.value = evaluationResult.value
 
         } catch (e: Exception) {
             Log.e("CalculatorViewModel", "Auto-calculation error: ${e.message}")

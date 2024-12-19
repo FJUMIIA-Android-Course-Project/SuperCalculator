@@ -498,7 +498,8 @@ fun CalculatorUI(
                             modifier = Modifier
                                 .aspectRatio(1f)
                                 .weight(1f)
-                                .clickable { viewModel.clear()
+                                .clickable { viewModel.saveAns()
+                                    viewModel.clear()
                                     viewModel.addCharacterToExpression("Ans") }
                         )
                         // Button for equals "="
