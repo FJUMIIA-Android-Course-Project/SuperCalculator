@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.text.KeyboardOptions
@@ -32,23 +33,44 @@ fun CalculatorUI(viewModel: CalculatorViewModel) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            // Material3 的 NavigationDrawerItem
-            NavigationDrawerItem(
-                label = { Text("Option 1", color = Color.White) },
-                selected = false,
-                onClick = {
-                    coroutineScope.launch { drawerState.close() }
-                    // 處理 Option 1 點擊事件
-                },
-                colors = NavigationDrawerItemDefaults.colors(
-                    unselectedContainerColor = Color.Transparent,
-                    selectedContainerColor = PrussianBlue,
-                    unselectedTextColor = Color.White,
-                    selectedTextColor = Color.White
-                ),
-                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                interactionSource = remember { MutableInteractionSource() }
-            )
+            ModalDrawerSheet {
+                NavigationDrawerItem(
+                    label = {
+                        Text(
+                            text = "Option 1",
+                            color = if (isSystemInDarkTheme()) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onPrimary
+                            }
+                        )
+                    },
+                    selected = false,
+                    onClick = {
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = Color.Transparent,
+                        selectedContainerColor = if (isSystemInDarkTheme()) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
+                        unselectedTextColor = if (isSystemInDarkTheme()) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onPrimary
+                        },
+                        selectedTextColor = if (isSystemInDarkTheme()) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onPrimary
+                        }
+                    ),
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                    interactionSource = remember { MutableInteractionSource() }
+                )
+            }
         }
     ) {
         CalculatorContent(
@@ -103,7 +125,6 @@ fun CalculatorContent(viewModel: CalculatorViewModel, openDrawer: () -> Unit){
                     value = currentExpression,
                     // Update the expression in the ViewModel when the input changes
                     onValueChange = {
-                        val it = null
                         viewModel.currentExpression = it
                     },
                     readOnly = true, // Input field is read-only
