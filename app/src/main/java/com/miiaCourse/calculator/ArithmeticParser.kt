@@ -214,7 +214,7 @@ object ArithmeticParser {
                 val next = tokens[index + 1]
 
                 val currentIsValue =
-                    token.matches(Regex("[0-9.]+")) || token == ")" || token == Math.E.toString() || token == Math.PI.toString()
+                    token.matches(Regex("[0-9.]+")) || token == ")" || token == Math.E.toString() || token == Math.PI.toString() || token == "Ans"
                 val nextIsValueOrFunc =
                     next.matches(Regex("[0-9.]+")) || next == "(" || next in functions || next == Math.E.toString() || next == Math.PI.toString()
 
