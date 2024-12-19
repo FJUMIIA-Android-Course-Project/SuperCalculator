@@ -24,11 +24,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.miiaCourse.calculator.ui.theme.*
 import kotlinx.coroutines.launch
+sealed class Screen {
+    object Calculator : Screen()
+    object Option1 : Screen()
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorUI(viewModel: CalculatorViewModel) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Calculator) } // 新增：追蹤目前頁面
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -37,35 +43,41 @@ fun CalculatorUI(viewModel: CalculatorViewModel) {
                 NavigationDrawerItem(
                     label = {
                         Text(
-                            text = "Option 1",
-                            color = if (isSystemInDarkTheme()) {
-                                MaterialTheme.colorScheme.onSurface
-                            } else {
-                                MaterialTheme.colorScheme.onPrimary
-                            }
+                            text = "Calculator",
+                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
                         )
                     },
-                    selected = false,
+                    selected = currentScreen == Screen.Calculator,
                     onClick = {
+                        currentScreen = Screen.Calculator
                         coroutineScope.launch { drawerState.close() }
                     },
                     colors = NavigationDrawerItemDefaults.colors(
                         unselectedContainerColor = Color.Transparent,
-                        selectedContainerColor = if (isSystemInDarkTheme()) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        },
-                        unselectedTextColor = if (isSystemInDarkTheme()) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onPrimary
-                        },
-                        selectedTextColor = if (isSystemInDarkTheme()) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onPrimary
-                        }
+                        selectedContainerColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
+                        unselectedTextColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        selectedTextColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                    interactionSource = remember { MutableInteractionSource() }
+                )
+                NavigationDrawerItem(
+                    label = {
+                        Text(
+                            text = "Option 1",
+                            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
+                    selected = currentScreen == Screen.Option1,
+                    onClick = {
+                        currentScreen = Screen.Option1 // 新增：切換到 Option 1 頁面
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = Color.Transparent,
+                        selectedContainerColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
+                        unselectedTextColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        selectedTextColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
                     ),
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                     interactionSource = remember { MutableInteractionSource() }
@@ -73,12 +85,45 @@ fun CalculatorUI(viewModel: CalculatorViewModel) {
             }
         }
     ) {
-        CalculatorContent(
-            viewModel = viewModel,
-            openDrawer = {
-                coroutineScope.launch { drawerState.open() }
+        // 根據 currentScreen 顯示不同的內容
+        when (currentScreen) {
+            is Screen.Calculator -> {
+                CalculatorContent(
+                    viewModel = viewModel,
+                    openDrawer = {
+                        coroutineScope.launch { drawerState.open() }
+                    }
+                )
             }
-        )
+            is Screen.Option1 -> {
+                // Option 1 頁面的內容
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("History", color = Color.White) },
+                            navigationIcon = {
+                                IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                                    Icon(imageVector = Icons.Filled.Menu, contentDescription = null, tint = Color.White)
+                                }
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(containerColor = PrussianBlue)
+                        )
+                    },
+                    content = { paddingValues ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(DarkGray)
+                                .padding(paddingValues),
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text("This is Option 1 Page", color = Color.White, fontSize = 24.sp)
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 
